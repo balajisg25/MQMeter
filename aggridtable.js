@@ -8,7 +8,11 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 const App = () => {
   const [selectedTab, setSelectedTab] = useState('tab1');
   const [rowData, setRowData] = useState([]);
-  const [columnDefs, setColumnDefs] = useState([]);
+  const [columnDefs, setColumnDefs] = useState([
+    { headerName: "Make", field: "make", filter: true },
+    { headerName: "Model", field: "model", filter: true },
+    { headerName: "Price", field: "price", filter: true }
+  ]);
 
   const tabs = [
     { value: 'tab1', label: 'Tab 1' },
@@ -17,18 +21,19 @@ const App = () => {
   ];
 
   useEffect(() => {
-    // Fetch column names
-    axios.get('/api/columns')
-      .then(response => {
-        const columns = response.data.map(col => ({ headerName: col, field: col, filter: true }));
-        setColumnDefs(columns);
-      })
-      .catch(error => console.error('Error fetching columns:', error));
-
-    // Fetch data when the selectedTab changes
-    axios.post('/api/data', { tab: selectedTab })
-      .then(response => setRowData(response.data))
-      .catch(error => console.error('Error fetching data:', error));
+    // Check local storage for data
+    const cachedData = localStorage.getItem(`data_${selectedTab}`);
+    if (cachedData) {
+      setRowData(JSON.parse(cachedData));
+    } else {
+      // Fetch data when the selectedTab changes
+      axios.post('/api/data', { tab: selectedTab })
+        .then(response => {
+          setRowData(response.data);
+          localStorage.setItem(`data_${selectedTab}`, JSON.stringify(response.data));
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
   }, [selectedTab]);
 
   const handleTabChange = (event, newValue) => {
