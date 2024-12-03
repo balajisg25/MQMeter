@@ -1,0 +1,12 @@
+// SubItemPage1.js
+import React from 'react';
+
+const SubItemPage1 = () => {
+  return (
+    <div>
+      <h1>Hello World</h1>
+    </div>
+  );
+};
+
+export default SubItemPage1;
