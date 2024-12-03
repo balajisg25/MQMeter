@@ -1,0 +1,26 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import TopBar from './TopBar'; // Import TopBar component
+import SubItemPage1 from './SubItemPage1'; // Import SubItemPage1 component
+
+// Pages for sub-menu
+const HomePage = () => <div>Home Page Content</div>;
+
+const SubItemPage2 = () => <div>Sub-item 2 Page Content</div>;
+const SubItemPage3 = () => <div>Sub-item 3 Page Content</div>;
+
+function App() {
+  return (
+    <Router>
+      <TopBar /> {/* Use the TopBar component */}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/subitem1" element={<SubItemPage1 />} /> {/* Route to SubItemPage1 */}
+        <Route path="/subitem2" element={<SubItemPage2 />} />
+        <Route path="/subitem3" element={<SubItemPage3 />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
