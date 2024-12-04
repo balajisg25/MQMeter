@@ -157,4 +157,28 @@ const LogConverter = () => {
                 onChange={(e) => setPlatform(e.target.value)}
                 sx={{ display: "flex", flexDirection: "row" }}
               >
-                <FormControlLabel val
+                <FormControlLabel value="ios" control={<Radio />} label="iOS" />
+                <FormControlLabel value="android" control={<Radio />} label="Android" />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+
+          <Button
+            variant="contained"
+            style={{
+              backgroundColor: "black",
+              color: "white",
+              marginTop: "1rem",
+              width: "100%",
+            }}
+            onClick={handleConvert}
+          >
+            Convert
+          </Button>
+        </CardContent>
+      </Card>
+    </Container>
+  );
+};
+
+export default LogConverter;
