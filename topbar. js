@@ -11,17 +11,18 @@ import {
   Menu,
   MenuItem,
   Collapse,
+  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-
+import SubItemPage1 from './SubItemPage1';
 function TopBar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [tabValue, setTabValue] = useState(0);
-  const [anchorEl, setAnchorEl] = useState(null); // Sub-menu anchor for "Home"
-  const navigate = useNavigate(); // React Router navigate hook
+  const [menus, setMenus] = useState({}); // Object to handle multiple menu anchors
+  const navigate = useNavigate();
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')); // Detect small screens
@@ -44,17 +45,17 @@ function TopBar() {
     setTabValue(newValue);
   };
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleMenuOpen = (tabKey, event) => {
+    setMenus({ ...menus, [tabKey]: event.currentTarget });
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
+  const handleMenuClose = (tabKey) => {
+    setMenus({ ...menus, [tabKey]: null });
   };
 
   const handleSubMenuClick = (route) => {
     navigate(route); // Navigate to the selected route
-    setAnchorEl(null); // Close the menu after selection
+    Object.keys(menus).forEach((key) => handleMenuClose(key)); // Close all menus after selection
   };
 
   return (
@@ -114,9 +115,18 @@ function TopBar() {
           {isLoggedIn && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Tabs value={tabValue} onChange={handleTabChange} textColor="inherit" indicatorColor="secondary">
-                <Tab label="Home" onClick={handleMenuOpen} />
-                <Tab label="Profile" />
-                <Tab label="Settings" />
+                <Tab
+                  label="Home"
+                  onClick={(event) => handleMenuOpen('home', event)} // Open sub-menu for "Home"
+                />
+                <Tab
+                  label="Profile"
+                  onClick={(event) => handleMenuOpen('profile', event)} // Open sub-menu for "Profile"
+                />
+                <Tab
+                  label="Settings"
+                  onClick={(event) => handleMenuOpen('settings', event)} // Open sub-menu for "Settings"
+                />
               </Tabs>
               <Button color="inherit" onClick={handleLogout}>
                 Logout
@@ -126,17 +136,46 @@ function TopBar() {
         </Collapse>
       </Toolbar>
 
+      {/* Menu for "Home" */}
       <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
+        anchorEl={menus['home']}
+        open={Boolean(menus['home'])}
+        onClose={() => handleMenuClose('home')}
         MenuListProps={{
           'aria-labelledby': 'home-tab',
         }}
       >
-        <MenuItem onClick={() => handleSubMenuClick('/subitem1')}>Sub-item 1</MenuItem>
-        <MenuItem onClick={() => handleSubMenuClick('/subitem2')}>Sub-item 2</MenuItem>
-        <MenuItem onClick={() => handleSubMenuClick('/subitem3')}>Sub-item 3</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/subitem1')}>SubItemPage1</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/home-subitem2')}>Home Sub-item 2</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/home-subitem3')}>Home Sub-item 3</MenuItem>
+      </Menu>
+
+      {/* Menu for "Profile" */}
+      <Menu
+        anchorEl={menus['profile']}
+        open={Boolean(menus['profile'])}
+        onClose={() => handleMenuClose('profile')}
+        MenuListProps={{
+          'aria-labelledby': 'profile-tab',
+        }}
+      >
+        <MenuItem onClick={() => handleSubMenuClick('/profile-subitem1')}>Profile Sub-item 1</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/profile-subitem2')}>Profile Sub-item 2</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/profile-subitem3')}>Profile Sub-item 3</MenuItem>
+      </Menu>
+
+      {/* Menu for "Settings" */}
+      <Menu
+        anchorEl={menus['settings']}
+        open={Boolean(menus['settings'])}
+        onClose={() => handleMenuClose('settings')}
+        MenuListProps={{
+          'aria-labelledby': 'settings-tab',
+        }}
+      >
+        <MenuItem onClick={() => handleSubMenuClick('/settings-subitem1')}>Settings Sub-item 1</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/settings-subitem2')}>Settings Sub-item 2</MenuItem>
+        <MenuItem onClick={() => handleSubMenuClick('/settings-subitem3')}>Settings Sub-item 3</MenuItem>
       </Menu>
     </AppBar>
   );
