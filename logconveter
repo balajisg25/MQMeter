@@ -1,0 +1,178 @@
+import React, { useState } from "react";
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormControl,
+  FormLabel,
+  Box,
+} from "@mui/material";
+
+const LogConverter = () => {
+  const [file, setFile] = useState(null);
+  const [platform, setPlatform] = useState("ios");
+
+  // Handle file selection
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile && (selectedFile.name.endsWith(".txt") || selectedFile.name.endsWith(".log"))) {
+      setFile(selectedFile);
+    } else {
+      alert("Please upload a .txt or .log file");
+    }
+  };
+
+  // iOS log processing function
+  const processIOSLogs = (content) => {
+    // Define the regex pattern
+    const regex = /URL : (.*)\WRequest.method : (.*)\WRequest.body: \W(.*?)\nRequest Header/gm;
+
+    let result = ""; // Initialize an empty result string
+    let match;
+    let snapshotIndex = 101; // Starting value for Snapshot
+
+    // Iterate through all matches
+    while ((match = regex.exec(content)) !== null) {
+      const url = match[1];
+      const method = match[2];
+      const body = match[3];
+
+      if (method.toUpperCase() === "POST") {
+        // Use the specified template for POST method with incremental Snapshot
+        result += `web_custom_request("test",\n` +
+                  `    "URL=${url}",\n` +
+                  `    "Method=${method}",\n` +
+                  `    "TargetFrame=",\n` +
+                  `    "Resource=0",\n` +
+                  `    "RecContentType=application/json",\n` +
+                  `    "Mode=HTML",\n` +
+                  `    "Snapshot=t${snapshotIndex}.inf",\n` +
+                  `    "EncType=application/json",\n` +
+                  `    "Body=${body}",\n` +
+                  `    LAST);\n\n\n`;
+        snapshotIndex++; // Increment the Snapshot index
+      } else {
+        // Handle non-POST methods (optional, customize as needed)
+        result += `Extracted Data:\nURL: ${url}\nMethod: ${method}\nBody: ${body}\n\n`;
+      }
+    }
+
+    return result || "No matches found.";
+  };
+
+  // Android log processing function (placeholder logic for now)
+  const processAndroidLogs = (content) => {
+    return content.replace(/pattern2/g, "replacement2"); // Replace with actual Android processing logic
+  };
+
+  // Convert and save logs
+  const handleConvert = async () => {
+    if (!file) {
+      alert("Please select a file to convert.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const fileContent = reader.result;
+      let convertedContent = "";
+
+      if (platform === "ios") {
+        convertedContent = processIOSLogs(fileContent);
+      } else if (platform === "android") {
+        convertedContent = processAndroidLogs(fileContent);
+      }
+
+      // Generate a timestamped filename
+      const timestamp = new Date().toISOString().replace(/:/g, "-");
+      const outputFileName = `${file.name.split(".")[0]}_converted_${timestamp}.txt`;
+
+      // Write the file in the same location (download for browser-based apps)
+      const blob = new Blob([convertedContent], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = outputFileName;
+      link.click();
+    };
+
+    reader.readAsText(file);
+  };
+
+  return (
+    <Container maxWidth="sm" style={{ marginTop: "2rem" }}>
+      <Card elevation={3} style={{ padding: "1rem" }}>
+        <CardContent>
+          <Typography variant="h4" gutterBottom align="center">
+            Log Converter
+          </Typography>
+
+          {/* File Upload Section with minimal spacing */}
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            {/* Label with minimal space */}
+            <Typography
+              variant="body1"
+              sx={{
+                minWidth: "120px",
+                textAlign: "left",
+                marginRight: "8px", // Reduced margin between label and input
+              }}
+            >
+              Select Log File
+            </Typography>
+
+            {/* File input with minimized space */}
+            <TextField
+              type="file"
+              inputProps={{ accept: ".txt,.log" }}
+              onChange={handleFileChange}
+              variant="outlined"
+              style={{
+                width: "100%", // Use full width, or adjust as necessary
+                marginBottom: "8px", // Small margin below the file input
+              }}
+            />
+          </Box>
+
+          {/* Platform Selection Section */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+            <FormControl component="fieldset" style={{ width: "100%" }}>
+              <FormLabel component="legend" sx={{ minWidth: "120px", textAlign: "left" }}>
+                Select Platform
+              </FormLabel>
+              <RadioGroup
+                row
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                sx={{ display: "flex", flexDirection: "row" }}
+              >
+                <FormControlLabel value="ios" control={<Radio />} label="iOS" />
+                <FormControlLabel value="android" control={<Radio />} label="Android" />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+
+          <Button
+            variant="contained"
+            style={{
+              backgroundColor: "black",
+              color: "white",
+              marginTop: "1rem",
+              width: "100%",
+            }}
+            onClick={handleConvert}
+          >
+            Convert
+          </Button>
+        </CardContent>
+      </Card>
+    </Container>
+  );
+};
+
+export default LogConverter;
