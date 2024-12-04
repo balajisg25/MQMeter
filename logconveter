@@ -28,10 +28,10 @@ const LogConverter = () => {
     }
   };
 
-  // iOS log processing function
+  // iOS log processing function with console log
   const processIOSLogs = (content) => {
-    // Define the regex pattern
-    const regex = /URL : (.*)\WRequest.method : (.*)\WRequest.body: \W(.*?)\nRequest Header/gm;
+    // Define the updated regex pattern
+    const regex = /URL\s*:\s*(.*?)\s*Request\.method\s*:\s*(.*?)\s*Request\.body\s*:\s*(.*?)\s*Request Header/gm;
 
     let result = ""; // Initialize an empty result string
     let match;
@@ -42,6 +42,12 @@ const LogConverter = () => {
       const url = match[1];
       const method = match[2];
       const body = match[3];
+
+      // Log the match in the console for debugging
+      console.log("Match found:");
+      console.log("URL:", url);
+      console.log("Method:", method);
+      console.log("Body:", body);
 
       if (method.toUpperCase() === "POST") {
         // Use the specified template for POST method with incremental Snapshot
@@ -151,28 +157,4 @@ const LogConverter = () => {
                 onChange={(e) => setPlatform(e.target.value)}
                 sx={{ display: "flex", flexDirection: "row" }}
               >
-                <FormControlLabel value="ios" control={<Radio />} label="iOS" />
-                <FormControlLabel value="android" control={<Radio />} label="Android" />
-              </RadioGroup>
-            </FormControl>
-          </Box>
-
-          <Button
-            variant="contained"
-            style={{
-              backgroundColor: "black",
-              color: "white",
-              marginTop: "1rem",
-              width: "100%",
-            }}
-            onClick={handleConvert}
-          >
-            Convert
-          </Button>
-        </CardContent>
-      </Card>
-    </Container>
-  );
-};
-
-export default LogConverter;
+                <FormControlLabel val
