@@ -74,6 +74,7 @@ const LogConverter = () => {
 
   // Android log processing function (placeholder logic for now)
   const processAndroidLogs = (content) => {
+const regex = /(GET|POST|PUT)\s+(https?:\/\/\S+).*?\{(.*?)\}/gs;
     return content.replace(/pattern2/g, "replacement2"); // Replace with actual Android processing logic
   };
 
