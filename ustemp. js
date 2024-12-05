@@ -1,184 +1,71 @@
-import React, { useState } from "react";
+import React from 'react';
 import {
-  Container,
   Card,
   CardContent,
-  Typography,
-  TextField,
-  Button,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  FormControl,
-  FormLabel,
-  Box,
-} from "@mui/material";
+  CardHeader,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
 
-const LogConverter = () => {
-  const [file, setFile] = useState(null);
-  const [platform, setPlatform] = useState("ios");
-
-  // Handle file selection
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile && (selectedFile.name.endsWith(".txt") || selectedFile.name.endsWith(".log"))) {
-      setFile(selectedFile);
-    } else {
-      alert("Please upload a .txt or .log file");
-    }
-  };
-
-  // iOS log processing function with console log
-  const processIOSLogs = (content) => {
-    // Define the updated regex pattern
-    const regex = /URL\s*:\s*(.*?)\s*Request\.method\s*:\s*(.*?)\s*Request\.body\s*:\s*(.*?)\s*Request Header/gm;
-
-    let result = ""; // Initialize an empty result string
-    let match;
-    let snapshotIndex = 101; // Starting value for Snapshot
-
-    // Iterate through all matches
-    while ((match = regex.exec(content)) !== null) {
-      const url = match[1];
-      const method = match[2];
-      const body = match[3];
-
-      // Log the match in the console for debugging
-      console.log("Match found:");
-      console.log("URL:", url);
-      console.log("Method:", method);
-      console.log("Body:", body);
-
-      if (method.toUpperCase() === "POST") {
-        // Use the specified template for POST method with incremental Snapshot
-        result += `web_custom_request("test",\n` +
-                  `    "URL=${url}",\n` +
-                  `    "Method=${method}",\n` +
-                  `    "TargetFrame=",\n` +
-                  `    "Resource=0",\n` +
-                  `    "RecContentType=application/json",\n` +
-                  `    "Mode=HTML",\n` +
-                  `    "Snapshot=t${snapshotIndex}.inf",\n` +
-                  `    "EncType=application/json",\n` +
-                  `    "Body=${body}",\n` +
-                  `    LAST);\n\n\n`;
-        snapshotIndex++; // Increment the Snapshot index
-      } else {
-        // Handle non-POST methods (optional, customize as needed)
-        result += `Extracted Data:\nURL: ${url}\nMethod: ${method}\nBody: ${body}\n\n`;
-      }
-    }
-
-    return result || "No matches found.";
-  };
-
-  // Android log processing function (placeholder logic for now)
-  const processAndroidLogs = (content) => {
-    return content.replace(/pattern2/g, "replacement2"); // Replace with actual Android processing logic
-  };
-
-  // Convert and save logs
-  const handleConvert = async () => {
-    if (!file) {
-      alert("Please select a file to convert.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const fileContent = reader.result;
-      let convertedContent = "";
-
-      if (platform === "ios") {
-        convertedContent = processIOSLogs(fileContent);
-      } else if (platform === "android") {
-        convertedContent = processAndroidLogs(fileContent);
-      }
-
-      // Generate a timestamped filename
-      const timestamp = new Date().toISOString().replace(/:/g, "-");
-      const outputFileName = `${file.name.split(".")[0]}_converted_${timestamp}.txt`;
-
-      // Write the file in the same location (download for browser-based apps)
-      const blob = new Blob([convertedContent], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = outputFileName;
-      link.click();
-    };
-
-    reader.readAsText(file);
-  };
+const UsTemplateTable = () => {
+  const columns = ['Column 1', 'Column 2', 'Column 3'];
+  const rows = [
+    { col1: 'Row 1 Col 1', col2: 'This is a longer text in column 2', col3: 'Row 1 Col 3' },
+    { col1: 'Row 2 Col 1', col2: 'Short text', col3: 'Row 2 Col 3' },
+    { col1: 'Row 3 Col 1', col2: 'Another long piece of text in column 2', col3: 'Row 3 Col 3' },
+    { col1: 'Row 4 Col 1', col2: 'Text', col3: 'Row 4 Col 3' },
+    { col1: 'Row 5 Col 1', col2: 'Medium length text', col3: 'Row 5 Col 3' },
+    { col1: 'Row 6 Col 1', col2: 'A very very long text that requires adjustment', col3: 'Row 6 Col 3' },
+  ];
 
   return (
-    <Container maxWidth="sm" style={{ marginTop: "2rem" }}>
-      <Card elevation={3} style={{ padding: "1rem" }}>
-        <CardContent>
-          <Typography variant="h4" gutterBottom align="center">
-            Log Converter
-          </Typography>
-
-          {/* File Upload Section with minimal spacing */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            {/* Label with minimal space */}
-            <Typography
-              variant="body1"
-              sx={{
-                minWidth: "120px",
-                textAlign: "left",
-                marginRight: "8px", // Reduced margin between label and input
-              }}
-            >
-              Select Log File
-            </Typography>
-
-            {/* File input with minimized space */}
-            <TextField
-              type="file"
-              inputProps={{ accept: ".txt,.log" }}
-              onChange={handleFileChange}
-              variant="outlined"
-              style={{
-                width: "100%", // Use full width, or adjust as necessary
-                marginBottom: "8px", // Small margin below the file input
-              }}
-            />
-          </Box>
-
-          {/* Platform Selection Section */}
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-            <FormControl component="fieldset" style={{ width: "100%" }}>
-              <FormLabel component="legend" sx={{ minWidth: "120px", textAlign: "left" }}>
-                Select Platform
-              </FormLabel>
-              <RadioGroup
-                row
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
-                sx={{ display: "flex", flexDirection: "row" }}
-              >
-                <FormControlLabel value="ios" control={<Radio />} label="iOS" />
-                <FormControlLabel value="android" control={<Radio />} label="Android" />
-              </RadioGroup>
-            </FormControl>
-          </Box>
-
-          <Button
-            variant="contained"
-            style={{
-              backgroundColor: "black",
-              color: "white",
-              marginTop: "1rem",
-              width: "100%",
+    <Card>
+      <CardHeader title="US Template" />
+      <CardContent>
+        <TableContainer component={Paper}>
+          <Table
+            sx={{
+              border: '1px solid #ccc',
+              '& .MuiTableCell-root': {
+                border: '1px solid #ccc',
+              },
             }}
-            onClick={handleConvert}
           >
-            Convert
-          </Button>
-        </CardContent>
-      </Card>
-    </Container>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                {columns.map((column, index) => (
+                  <TableCell
+                    key={index}
+                    sx={{
+                      fontWeight: 'bold',
+                      width: 'auto', // Auto-adjust column width
+                      whiteSpace: 'nowrap', // Prevent text wrapping if needed
+                    }}
+                  >
+                    {column}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row, index) => (
+                <TableRow key={index}>
+                  <TableCell sx={{ width: 'auto' }}>{row.col1}</TableCell>
+                  <TableCell sx={{ width: 'auto' }}>{row.col2}</TableCell>
+                  <TableCell sx={{ width: 'auto' }}>{row.col3}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   );
 };
 
-export default LogConverter;
+export default UsTemplateTable;
