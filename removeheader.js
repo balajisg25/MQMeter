@@ -3,7 +3,8 @@ import { TextField, Button, Card, CardContent, Typography, Box, Alert } from "@m
 
 const FileEditor = () => {
   const [files, setFiles] = useState([]);
-  const [regexPattern, setRegexPattern] = useState("web_add_(header|auto_header|cookie)|web_set_sockets|lr_think_time|web_revert_j"); // Updated pattern
+  const [prefix, setPrefix] = useState("Code"); // Default prefix
+  const [regexPattern, setRegexPattern] = useState("^Code\\s*.*web_add_(header|auto_header|cookie)|web_set_sockets|lr_think_time|web_revert_j");
   const [message, setMessage] = useState("");
   const [modifiedFiles, setModifiedFiles] = useState([]);
 
@@ -55,6 +56,13 @@ const FileEditor = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Update the regex pattern when the prefix changes
+  const handlePrefixChange = (e) => {
+    const updatedPrefix = e.target.value;
+    setPrefix(updatedPrefix);
+    setRegexPattern(`^${updatedPrefix}\\s*.*web_add_(header|auto_header|cookie)|web_set_sockets|lr_think_time|web_revert_j`);
+  };
+
   return (
     <Box sx={{ padding: 3 }}>
       <Card sx={{ minWidth: 275, boxShadow: 3 }}>
@@ -87,6 +95,14 @@ const FileEditor = () => {
               Select Folder
             </Button>
           </Box>
+          <TextField
+            label="Prefix"
+            variant="outlined"
+            fullWidth
+            value={prefix}
+            onChange={handlePrefixChange}
+            sx={{ my: 2 }}
+          />
           <TextField
             label="Regex Pattern"
             variant="outlined"
