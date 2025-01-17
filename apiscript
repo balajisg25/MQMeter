@@ -1,0 +1,165 @@
+import React, { useState } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  MenuItem,
+  Grid,
+} from "@mui/material";
+
+function ApiToLoadRunner() {
+  const [method, setMethod] = useState("GET");
+  const [url, setUrl] = useState("");
+  const [headers, setHeaders] = useState("");
+  const [body, setBody] = useState("");
+  const [script, setScript] = useState("");
+
+  const generateScript = () => {
+    const formattedHeaders = headers
+      .split("\n")
+      .filter((header) => header.includes(":"))
+      .map((header) => {
+        const [key, value] = header.split(":").map((item) => item.trim());
+        return `web_add_header("${key}", "${value}");`;
+      })
+      .join("\n");
+
+    const formattedBody = body ? `Body={\\"${body.replace(/"/g, '\\"')}\\"}` : "";
+
+    const loadRunnerScript = `
+vuser_init()
+{
+    web_set_sockets_option("SSL_VERSION", "AUTO");
+
+    ${formattedHeaders}
+
+    web_custom_request("${method}_Request",
+        "URL=${url}",
+        "Method=${method}",
+        ${method === "POST" && body ? `"${formattedBody}",` : ""}
+        LAST);
+
+    return 0;
+}`;
+    setScript(loadRunnerScript);
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f4f6f8",
+        padding: 2,
+      }}
+    >
+      <Card sx={{ maxWidth: 600, width: "100%", boxShadow: 3 }}>
+        <CardContent>
+          <Typography variant="h5" gutterBottom textAlign="center">
+            API to LoadRunner Script Converter
+          </Typography>
+          <Grid container spacing={2}>
+            {/* HTTP Method */}
+            <Grid item xs={12}>
+              <TextField
+                select
+                label="HTTP Method"
+                fullWidth
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+              >
+                <MenuItem value="GET">GET</MenuItem>
+                <MenuItem value="POST">POST</MenuItem>
+              </TextField>
+            </Grid>
+
+            {/* URL */}
+            <Grid item xs={12}>
+              <TextField
+                label="URL"
+                fullWidth
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://api.example.com"
+              />
+            </Grid>
+
+            {/* Headers */}
+            <Grid item xs={12}>
+              <TextField
+                label="Headers (key:value per line)"
+                multiline
+                rows={3}
+                fullWidth
+                value={headers}
+                onChange={(e) => setHeaders(e.target.value)}
+                placeholder="Content-Type: application/json"
+              />
+            </Grid>
+
+            {/* Body (only for POST method) */}
+            {method === "POST" && (
+              <Grid item xs={12}>
+                <TextField
+                  label="Body"
+                  multiline
+                  rows={4}
+                  fullWidth
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder='{"key": "value"}'
+                />
+              </Grid>
+            )}
+
+            {/* Generate Button */}
+            <Grid item xs={12}>
+              <Button
+                onClick={generateScript}
+                variant="contained"
+                fullWidth
+                sx={{
+                  backgroundColor: "black",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "#333",
+                  },
+                }}
+              >
+                Generate LoadRunner Script
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* Display Generated Script */}
+          {script && (
+            <Box mt={4}>
+              <Typography variant="h6" gutterBottom>
+                Generated LoadRunner Script
+              </Typography>
+              <Box
+                component="pre"
+                sx={{
+                  backgroundColor: "#f0f0f0",
+                  padding: 2,
+                  borderRadius: 1,
+                  overflowX: "auto",
+                  border: "1px solid #ddd",
+                }}
+              >
+                {script}
+              </Box>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
+  );
+}
+
+export default ApiToLoadRunner;
