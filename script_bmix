@@ -1,0 +1,148 @@
+import React, { useState } from 'react';
+import { Button, Card, CardContent, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, LinearProgress } from '@mui/material';
+import * as XLSX from 'xlsx';
+import FileReaderInput from 'react-file-reader-input';
+
+function App() {
+  const [selectedApp, setSelectedApp] = useState('app1');  // Default to app1
+  const [excelData, setExcelData] = useState([]);
+  const [scriptData, setScriptData] = useState('');
+  const [progress, setProgress] = useState(0);  // For tracking progress
+  const [message, setMessage] = useState('');
+
+  const handleAppChange = (event) => {
+    setSelectedApp(event.target.value);  // Update selected app
+    setExcelData([]);  // Clear previous Excel data
+    setMessage('');  // Clear message when app changes
+  };
+
+  const handleExcelUpload = (e, results) => {
+    const [file] = results;
+    const { name, data } = file;
+    const workbook = XLSX.read(data, { type: 'array' });
+
+    // Extract data from the Excel file based on the selected app
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const dataJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    // Extract the URL, Prefix, and Suffix columns
+    const excelMap = dataJson.slice(1).map(row => ({
+      url: row[1],    // Column B: URL to search
+      prefix: row[2], // Column C: Prefix to insert
+      suffix: row[3], // Column D: Suffix to insert
+    }));
+
+    setExcelData(excelMap);
+    setMessage(`${name} loaded successfully for ${selectedApp}.`);
+  };
+
+  const handleScriptChange = (event) => {
+    const file = event.target.files[0];
+    
+    // Ensure the file is a .c file
+    if (file && file.name.endsWith('.c')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setScriptData(e.target.result);
+      };
+      reader.readAsText(file);
+    } else {
+      setMessage('Please upload a valid .c file.');
+    }
+  };
+
+  const processScript = () => {
+    const scriptLines = scriptData.split('\n');
+    const totalLines = scriptLines.length;
+
+    let updatedScript = '';
+    let processedCount = 0;
+
+    // Loop through each line in the script and check for URLs
+    scriptLines.forEach((line, index) => {
+      excelData.forEach(({ url, prefix, suffix }) => {
+        const regex = new RegExp(url, 'g');
+        if (regex.test(line)) {
+          // Replace the URL with prefix, URL, and suffix
+          line = `${prefix} ${line} ${suffix}`;
+        }
+      });
+
+      updatedScript += line + '\n'; // Add the processed line to the updated script
+
+      // Update progress
+      processedCount++;
+      setProgress(Math.round((processedCount / totalLines) * 100));
+    });
+
+    setScriptData(updatedScript);
+    setMessage('Script updated with new URLs and logic.');
+  };
+
+  return (
+    <div>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            LoadRunner Script URL Updater
+          </Typography>
+          
+          {/* Radio Buttons for app selection */}
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Select Application</FormLabel>
+            <RadioGroup row value={selectedApp} onChange={handleAppChange}>
+              <FormControlLabel value="app1" control={<Radio />} label="App 1" />
+              <FormControlLabel value="app2" control={<Radio />} label="App 2" />
+              <FormControlLabel value="app3" control={<Radio />} label="App 3" />
+              <FormControlLabel value="app4" control={<Radio />} label="App 4" />
+            </RadioGroup>
+          </FormControl>
+
+          {/* Upload Excel file */}
+          <Button variant="contained" component="label">
+            Upload Excel File
+            <FileReaderInput as="binary" onChange={handleExcelUpload} />
+          </Button>
+
+          {/* Upload LoadRunner script file, only accepting .c files */}
+          <input
+            type="file"
+            accept=".c"
+            onChange={handleScriptChange}
+          />
+
+          {/* Button to process the script */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={processScript}
+            disabled={!scriptData || !excelData.length}
+          >
+            Process Script
+          </Button>
+
+          {/* Progress Bar */}
+          <LinearProgress variant="determinate" value={progress} />
+
+          {/* Message to show the status */}
+          {message && <Typography variant="body2">{message}</Typography>}
+
+          <Typography variant="body1" gutterBottom>
+            Processed Script Output:
+          </Typography>
+
+          {/* Display processed script */}
+          <textarea
+            value={scriptData}
+            readOnly
+            rows={15}
+            cols={80}
+            style={{ width: '100%' }}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default App;
