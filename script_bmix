@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Card, Button, Typography, Box, Input } from "@mui/material";
 import * as XLSX from "xlsx";
 
 function App() {
-  const [selectedApp, setSelectedApp] = useState("");
   const [excelData, setExcelData] = useState([]);
-  const [scriptData, setScriptData] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
-  // Load Excel Data from public folder
+  // Load Excel Data from the public folder (hardcoded path)
   const loadExcelData = async () => {
     const response = await fetch("/loadrunner_data.xlsx"); // Excel file in the public folder
     const arrayBuffer = await response.arrayBuffer();
@@ -18,52 +17,67 @@ function App() {
     setExcelData(jsonData);
   };
 
-  const handleScriptUpload = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      const script = reader.result;
-      setScriptData(script);
-    };
-    reader.readAsText(file);
+  useEffect(() => {
+    // Load Excel Data as soon as the component is mounted
+    loadExcelData();
+  }, []);
+
+  // Handle folder selection
+  const handleFolderUpload = (e) => {
+    const files = e.target.files;
+    const fileArray = Array.from(files);
+    setSelectedFiles(fileArray);
   };
 
   // Regex pattern to match URLs in web_custom_request and web_url
   const urlRegex = /(?:web_(?:custom_request|url)[^"]*?\s*URL\s*=\s*")([^"]+)"/g;
 
   const processScript = () => {
-    if (!scriptData || excelData.length === 0) return;
+    if (selectedFiles.length === 0 || excelData.length === 0) return;
 
-    let modifiedScript = scriptData;
+    selectedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const script = reader.result;
+        let modifiedScript = script;
 
-    // Extract all URLs using regex
-    const urls = [];
-    let match;
-    while ((match = urlRegex.exec(scriptData)) !== null) {
-      urls.push(match[1]);
-    }
-
-    console.log("Extracted URLs:", urls);
-
-    // Modify the URLs based on the Prefix and Suffix from Excel data
-    excelData.forEach(({ URL, Prefix, Suffix }) => {
-      urls.forEach((url) => {
-        if (url === URL) {
-          const modifiedUrl = `${Prefix}${url}${Suffix}`;
-          // Replace the original URL in the script with the modified one
-          const urlRegexForReplacement = new RegExp(`(${URL})`, "g");
-          modifiedScript = modifiedScript.replace(urlRegexForReplacement, modifiedUrl);
+        // Extract all URLs using regex
+        const urls = [];
+        let match;
+        while ((match = urlRegex.exec(script)) !== null) {
+          urls.push(match[1]);
         }
-      });
-    });
 
-    // Save the processed script as a new file
-    const blob = new Blob([modifiedScript], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "modified_loadrunner_script.c";
-    link.click();
+        console.log("Extracted URLs:", urls);
+
+        // Modify the URLs based on the Prefix and Suffix from Excel data
+        excelData.forEach(({ URL, Prefix, Suffix }) => {
+          urls.forEach((url) => {
+            if (url === URL) {
+              // Add multi-line Prefix before web_
+              let modifiedUrl = `${Prefix}\nweb_${url.split('://')[1]}`; // Add Prefix before web_
+
+              // Replace the original URL in the script with the modified one
+              const urlRegexForReplacement = new RegExp(`(${url})`, "g");
+              modifiedScript = modifiedScript.replace(urlRegexForReplacement, modifiedUrl);
+
+              // Add the multi-line Suffix after the closing parenthesis and semicolon
+              const suffixRegex = new RegExp(`(${modifiedUrl}[^;]*);`);
+              modifiedScript = modifiedScript.replace(suffixRegex, `$1\n${Suffix};`);
+            }
+          });
+        });
+
+        // Create a Blob and trigger the download of the modified file
+        const blob = new Blob([modifiedScript], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${file.name.replace(".c", "_modified.c")}`;
+        link.click();
+      };
+      reader.readAsText(file);
+    });
   };
 
   return (
@@ -73,23 +87,13 @@ function App() {
           LoadRunner Script Processor
         </Typography>
 
-        <Button
-          style={{
-            backgroundColor: "black",
-            color: "white",
-            marginTop: "20px",
-            padding: "10px 20px",
-          }}
-          onClick={loadExcelData} // Load Excel data
-        >
-          Load Excel Data
-        </Button>
-
         <Box mt={3}>
           <Input
             type="file"
-            accept=".c"
-            onChange={handleScriptUpload} // Upload script
+            webkitdirectory="true"  // This allows folder selection
+            directory="true"        // This is needed for Chrome compatibility
+            onChange={handleFolderUpload} // Handle folder upload
+            multiple
             style={{ marginBottom: 20 }}
           />
         </Box>
@@ -101,14 +105,14 @@ function App() {
             marginTop: "20px",
             padding: "10px 20px",
           }}
-          onClick={processScript} // Process the script
+          onClick={processScript} // Process all scripts
         >
-          Process Script
+          Process Scripts
         </Button>
 
         <Box mt={3}>
-          <Typography variant="h6">Script Data:</Typography>
-          <pre>{scriptData}</pre>
+          <Typography variant="h6">Selected Files:</Typography>
+          <pre>{selectedFiles.map((file) => file.name).join("\n")}</pre>
         </Box>
       </Card>
     </Container>
