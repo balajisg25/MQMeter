@@ -37,7 +37,7 @@ function App() {
     setSelectedFiles(fileArray);
   };
 
-  // Handle application selection from dropdown (sheet name)
+  // Handle application selection from dropdown
   const handleApplicationChange = (e) => {
     setSelectedApplication(e.target.value);
   };
@@ -113,8 +113,8 @@ function App() {
     });
   };
 
-  // Get the list of sheet names as applications
-  const applicationList = Object.keys(excelData);
+  // Predefined application list
+  const applicationList = ["web", "business", "employee", "other"];
 
   return (
     <Container maxWidth="md" style={{ marginTop: 20 }}>
