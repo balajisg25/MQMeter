@@ -1,209 +1,117 @@
 import React, { useState } from "react";
-import {
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
-  LinearProgress,
-} from "@mui/material";
+import { Container, Card, Button, Typography, Box, Input } from "@mui/material";
 import * as XLSX from "xlsx";
 
 function App() {
-  const [selectedApp, setSelectedApp] = useState("app1");
+  const [selectedApp, setSelectedApp] = useState("");
   const [excelData, setExcelData] = useState([]);
-  const [scriptFiles, setScriptFiles] = useState([]);
-  const [progress, setProgress] = useState(0);
-  const [message, setMessage] = useState("");
+  const [scriptData, setScriptData] = useState("");
 
-  // Handle radio button change (selects Excel file)
-  const handleAppChange = (event) => {
-    setSelectedApp(event.target.value);
-    setExcelData([]);
-    setMessage(`Loading ${event.target.value}.xlsx...`);
-    loadExcelData(event.target.value);
+  // Load Excel Data from public folder
+  const loadExcelData = async () => {
+    const response = await fetch("/loadrunner_data.xlsx"); // Excel file in the public folder
+    const arrayBuffer = await response.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    setExcelData(jsonData);
   };
 
-  // Load Excel file based on selected app
-  const loadExcelData = async (appName) => {
-    try {
-      const fileResponse = await fetch(`/${appName}.xlsx`);
-      const fileBlob = await fileResponse.blob();
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const workbook = XLSX.read(e.target.result, { type: "binary" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const dataJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-        const extractedData = dataJson.slice(1).map((row) => ({
-          url: row[1],  // Column B: URL
-          prefix: row[2], // Column C: Prefix
-          suffix: row[3], // Column D: Suffix
-        }));
-
-        setExcelData(extractedData);
-        setMessage(`${appName}.xlsx loaded successfully.`);
-      };
-      reader.readAsBinaryString(fileBlob);
-    } catch (error) {
-      setMessage("Error loading Excel file.");
-    }
+  const handleScriptUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const script = reader.result;
+      setScriptData(script);
+    };
+    reader.readAsText(file);
   };
 
-  // Handle folder selection and filter .c files
-  const handleFolderUpload = (event) => {
-    const files = Array.from(event.target.files).filter((file) =>
-      file.name.endsWith(".c")
-    );
+  // Regex pattern to match URLs in web_custom_request and web_url
+  const urlRegex = /(?:web_(?:custom_request|url)[^"]*?\s*URL\s*=\s*")([^"]+)"/g;
 
-    if (files.length === 0) {
-      setMessage("Please select a folder containing .c files.");
-      return;
+  const processScript = () => {
+    if (!scriptData || excelData.length === 0) return;
+
+    let modifiedScript = scriptData;
+
+    // Extract all URLs using regex
+    const urls = [];
+    let match;
+    while ((match = urlRegex.exec(scriptData)) !== null) {
+      urls.push(match[1]);
     }
 
-    const filePromises = files.map((file) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve({ name: file.name, content: e.target.result });
-        reader.readAsText(file);
+    console.log("Extracted URLs:", urls);
+
+    // Modify the URLs based on the Prefix and Suffix from Excel data
+    excelData.forEach(({ URL, Prefix, Suffix }) => {
+      urls.forEach((url) => {
+        if (url === URL) {
+          const modifiedUrl = `${Prefix}${url}${Suffix}`;
+          // Replace the original URL in the script with the modified one
+          const urlRegexForReplacement = new RegExp(`(${URL})`, "g");
+          modifiedScript = modifiedScript.replace(urlRegexForReplacement, modifiedUrl);
+        }
       });
     });
 
-    Promise.all(filePromises).then((results) => {
-      setScriptFiles(results);
-      setMessage(`Loaded ${results.length} script files.`);
-    });
-  };
-
-  // Process .c files and replace URLs based on Excel data
-  const processScripts = () => {
-    if (!scriptFiles.length || !excelData.length) {
-      setMessage("Please upload scripts and select an Excel file.");
-      return;
-    }
-
-    let processedFiles = [];
-    let totalLines = scriptFiles.reduce(
-      (sum, file) => sum + file.content.split("\n").length,
-      0
-    );
-    let processedCount = 0;
-
-    scriptFiles.forEach((file) => {
-      let scriptLines = file.content.split("\n");
-      let updatedScript = "";
-
-      scriptLines.forEach((line) => {
-        excelData.forEach(({ url, prefix, suffix }) => {
-          if (line.includes(url)) {
-            line = `${prefix} ${line} ${suffix}`;
-          }
-        });
-
-        updatedScript += line + "\n";
-        processedCount++;
-        setProgress(Math.round((processedCount / totalLines) * 100));
-      });
-
-      processedFiles.push({ name: file.name, content: updatedScript });
-    });
-
-    setScriptFiles(processedFiles);
-    setMessage("Scripts processed successfully.");
-  };
-
-  // Download modified .c files
-  const downloadProcessedFiles = () => {
-    scriptFiles.forEach((file) => {
-      const blob = new Blob([file.content], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+    // Save the processed script as a new file
+    const blob = new Blob([modifiedScript], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "modified_loadrunner_script.c";
+    link.click();
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
-      <Card style={{ maxWidth: 600, padding: "20px", backgroundColor: "#f5f5f5" }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            LoadRunner Script Processor
-          </Typography>
+    <Container maxWidth="md" style={{ marginTop: 20 }}>
+      <Card style={{ padding: 20, textAlign: "center" }}>
+        <Typography variant="h5" gutterBottom>
+          LoadRunner Script Processor
+        </Typography>
 
-          {/* Radio Buttons for app selection */}
-          <FormControl component="fieldset">
-            <FormLabel component="legend">Select Application</FormLabel>
-            <RadioGroup row value={selectedApp} onChange={handleAppChange}>
-              <FormControlLabel value="app1" control={<Radio />} label="App 1" />
-              <FormControlLabel value="app2" control={<Radio />} label="App 2" />
-              <FormControlLabel value="app3" control={<Radio />} label="App 3" />
-              <FormControlLabel value="app4" control={<Radio />} label="App 4" />
-            </RadioGroup>
-          </FormControl>
+        <Button
+          style={{
+            backgroundColor: "black",
+            color: "white",
+            marginTop: "20px",
+            padding: "10px 20px",
+          }}
+          onClick={loadExcelData} // Load Excel data
+        >
+          Load Excel Data
+        </Button>
 
-          {/* Upload LoadRunner script folder */}
-          <Button
-            variant="contained"
-            component="label"
-            style={{ backgroundColor: "black", color: "white", margin: "10px 0" }}
-          >
-            Select Script Folder (.c Files)
-            <input type="file" accept=".c" multiple hidden webkitdirectory onChange={handleFolderUpload} />
-          </Button>
+        <Box mt={3}>
+          <Input
+            type="file"
+            accept=".c"
+            onChange={handleScriptUpload} // Upload script
+            style={{ marginBottom: 20 }}
+          />
+        </Box>
 
-          {/* Button to process scripts */}
-          <Button
-            variant="contained"
-            style={{ backgroundColor: "black", color: "white", margin: "10px 0" }}
-            onClick={processScripts}
-            disabled={!scriptFiles.length || !excelData.length}
-          >
-            Process Scripts
-          </Button>
+        <Button
+          style={{
+            backgroundColor: "black",
+            color: "white",
+            marginTop: "20px",
+            padding: "10px 20px",
+          }}
+          onClick={processScript} // Process the script
+        >
+          Process Script
+        </Button>
 
-          {/* Progress Bar */}
-          <LinearProgress variant="determinate" value={progress} style={{ marginTop: "10px" }} />
-
-          {/* Message to show the status */}
-          {message && <Typography variant="body2">{message}</Typography>}
-
-          {/* Download processed scripts */}
-          {scriptFiles.length > 0 && (
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "black", color: "white", marginTop: "10px" }}
-              onClick={downloadProcessedFiles}
-            >
-              Download Processed Scripts
-            </Button>
-          )}
-
-          {/* Processed Script Preview */}
-          <Typography variant="body1" gutterBottom>
-            Processed Script Preview:
-          </Typography>
-          {scriptFiles.map((file, index) => (
-            <div key={index}>
-              <Typography variant="body2">{file.name}</Typography>
-              <textarea
-                value={file.content}
-                readOnly
-                rows={10}
-                cols={80}
-                style={{ width: "100%" }}
-              />
-            </div>
-          ))}
-        </CardContent>
+        <Box mt={3}>
+          <Typography variant="h6">Script Data:</Typography>
+          <pre>{scriptData}</pre>
+        </Box>
       </Card>
-    </div>
+    </Container>
   );
 }
 
