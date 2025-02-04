@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Card, Button, Typography, Box, Input, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import * as XLSX from "xlsx";
 
-function Ap() {
+function App() {
   const [excelData, setExcelData] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState("");
@@ -13,15 +13,15 @@ function Ap() {
     const arrayBuffer = await response.arrayBuffer();
     const data = new Uint8Array(arrayBuffer);
     const workbook = XLSX.read(data, { type: "array" });
-    
+
     const dataSheets = {};
-    
+
     workbook.SheetNames.forEach(sheetName => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
       dataSheets[sheetName] = jsonData; // Store the sheet data by sheet name
     });
-    
+
     setExcelData(dataSheets);
   };
 
