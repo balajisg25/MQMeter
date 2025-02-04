@@ -14,19 +14,21 @@ import {
 import * as XLSX from "xlsx";
 
 function App() {
-  const [selectedApp, setSelectedApp] = useState("app1"); // Default app
+  const [selectedApp, setSelectedApp] = useState("app1");
   const [excelData, setExcelData] = useState([]);
   const [scriptFiles, setScriptFiles] = useState([]);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
 
+  // Handle radio button change (selects Excel file)
   const handleAppChange = (event) => {
     setSelectedApp(event.target.value);
-    setExcelData([]); // Clear previous Excel data
+    setExcelData([]);
     setMessage(`Loading ${event.target.value}.xlsx...`);
     loadExcelData(event.target.value);
   };
 
+  // Load Excel file based on selected app
   const loadExcelData = async (appName) => {
     try {
       const fileResponse = await fetch(`/${appName}.xlsx`);
@@ -38,7 +40,7 @@ function App() {
         const dataJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
         const extractedData = dataJson.slice(1).map((row) => ({
-          url: row[1], // Column B: URL
+          url: row[1],  // Column B: URL
           prefix: row[2], // Column C: Prefix
           suffix: row[3], // Column D: Suffix
         }));
@@ -52,13 +54,14 @@ function App() {
     }
   };
 
-  const handleScriptUpload = (event) => {
+  // Handle folder selection and filter .c files
+  const handleFolderUpload = (event) => {
     const files = Array.from(event.target.files).filter((file) =>
       file.name.endsWith(".c")
     );
 
     if (files.length === 0) {
-      setMessage("Please upload .c files.");
+      setMessage("Please select a folder containing .c files.");
       return;
     }
 
@@ -76,6 +79,7 @@ function App() {
     });
   };
 
+  // Process .c files and replace URLs based on Excel data
   const processScripts = () => {
     if (!scriptFiles.length || !excelData.length) {
       setMessage("Please upload scripts and select an Excel file.");
@@ -112,6 +116,7 @@ function App() {
     setMessage("Scripts processed successfully.");
   };
 
+  // Download modified .c files
   const downloadProcessedFiles = () => {
     scriptFiles.forEach((file) => {
       const blob = new Blob([file.content], { type: "text/plain" });
@@ -125,11 +130,11 @@ function App() {
   };
 
   return (
-    <div>
-      <Card>
+    <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+      <Card style={{ maxWidth: 600, padding: "20px", backgroundColor: "#f5f5f5" }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            LoadRunner Script URL Updater
+            LoadRunner Script Processor
           </Typography>
 
           {/* Radio Buttons for app selection */}
@@ -144,15 +149,19 @@ function App() {
           </FormControl>
 
           {/* Upload LoadRunner script folder */}
-          <Button variant="contained" component="label">
-            Upload Script Files (.c)
-            <input type="file" accept=".c" multiple hidden onChange={handleScriptUpload} />
+          <Button
+            variant="contained"
+            component="label"
+            style={{ backgroundColor: "black", color: "white", margin: "10px 0" }}
+          >
+            Select Script Folder (.c Files)
+            <input type="file" accept=".c" multiple hidden webkitdirectory onChange={handleFolderUpload} />
           </Button>
 
           {/* Button to process scripts */}
           <Button
             variant="contained"
-            color="primary"
+            style={{ backgroundColor: "black", color: "white", margin: "10px 0" }}
             onClick={processScripts}
             disabled={!scriptFiles.length || !excelData.length}
           >
@@ -160,14 +169,18 @@ function App() {
           </Button>
 
           {/* Progress Bar */}
-          <LinearProgress variant="determinate" value={progress} />
+          <LinearProgress variant="determinate" value={progress} style={{ marginTop: "10px" }} />
 
           {/* Message to show the status */}
           {message && <Typography variant="body2">{message}</Typography>}
 
           {/* Download processed scripts */}
           {scriptFiles.length > 0 && (
-            <Button variant="contained" color="secondary" onClick={downloadProcessedFiles}>
+            <Button
+              variant="contained"
+              style={{ backgroundColor: "black", color: "white", marginTop: "10px" }}
+              onClick={downloadProcessedFiles}
+            >
               Download Processed Scripts
             </Button>
           )}
