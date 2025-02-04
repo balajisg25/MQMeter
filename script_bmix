@@ -1,82 +1,127 @@
-import React, { useState } from 'react';
-import { Button, Card, CardContent, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, LinearProgress } from '@mui/material';
-import * as XLSX from 'xlsx';
-import FileReaderInput from 'react-file-reader-input';
+import React, { useState } from "react";
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  LinearProgress,
+} from "@mui/material";
+import * as XLSX from "xlsx";
 
 function App() {
-  const [selectedApp, setSelectedApp] = useState('app1');  // Default to app1
+  const [selectedApp, setSelectedApp] = useState("app1"); // Default app
   const [excelData, setExcelData] = useState([]);
-  const [scriptData, setScriptData] = useState('');
-  const [progress, setProgress] = useState(0);  // For tracking progress
-  const [message, setMessage] = useState('');
+  const [scriptFiles, setScriptFiles] = useState([]);
+  const [progress, setProgress] = useState(0);
+  const [message, setMessage] = useState("");
 
   const handleAppChange = (event) => {
-    setSelectedApp(event.target.value);  // Update selected app
-    setExcelData([]);  // Clear previous Excel data
-    setMessage('');  // Clear message when app changes
+    setSelectedApp(event.target.value);
+    setExcelData([]); // Clear previous Excel data
+    setMessage(`Loading ${event.target.value}.xlsx...`);
+    loadExcelData(event.target.value);
   };
 
-  const handleExcelUpload = (e, results) => {
-    const [file] = results;
-    const { name, data } = file;
-    const workbook = XLSX.read(data, { type: 'array' });
-
-    // Extract data from the Excel file based on the selected app
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const dataJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    // Extract the URL, Prefix, and Suffix columns
-    const excelMap = dataJson.slice(1).map(row => ({
-      url: row[1],    // Column B: URL to search
-      prefix: row[2], // Column C: Prefix to insert
-      suffix: row[3], // Column D: Suffix to insert
-    }));
-
-    setExcelData(excelMap);
-    setMessage(`${name} loaded successfully for ${selectedApp}.`);
-  };
-
-  const handleScriptChange = (event) => {
-    const file = event.target.files[0];
-    
-    // Ensure the file is a .c file
-    if (file && file.name.endsWith('.c')) {
+  const loadExcelData = async (appName) => {
+    try {
+      const fileResponse = await fetch(`/${appName}.xlsx`);
+      const fileBlob = await fileResponse.blob();
       const reader = new FileReader();
       reader.onload = (e) => {
-        setScriptData(e.target.result);
+        const workbook = XLSX.read(e.target.result, { type: "binary" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const dataJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        const extractedData = dataJson.slice(1).map((row) => ({
+          url: row[1], // Column B: URL
+          prefix: row[2], // Column C: Prefix
+          suffix: row[3], // Column D: Suffix
+        }));
+
+        setExcelData(extractedData);
+        setMessage(`${appName}.xlsx loaded successfully.`);
       };
-      reader.readAsText(file);
-    } else {
-      setMessage('Please upload a valid .c file.');
+      reader.readAsBinaryString(fileBlob);
+    } catch (error) {
+      setMessage("Error loading Excel file.");
     }
   };
 
-  const processScript = () => {
-    const scriptLines = scriptData.split('\n');
-    const totalLines = scriptLines.length;
+  const handleScriptUpload = (event) => {
+    const files = Array.from(event.target.files).filter((file) =>
+      file.name.endsWith(".c")
+    );
 
-    let updatedScript = '';
-    let processedCount = 0;
+    if (files.length === 0) {
+      setMessage("Please upload .c files.");
+      return;
+    }
 
-    // Loop through each line in the script and check for URLs
-    scriptLines.forEach((line, index) => {
-      excelData.forEach(({ url, prefix, suffix }) => {
-        const regex = new RegExp(url, 'g');
-        if (regex.test(line)) {
-          // Replace the URL with prefix, URL, and suffix
-          line = `${prefix} ${line} ${suffix}`;
-        }
+    const filePromises = files.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve({ name: file.name, content: e.target.result });
+        reader.readAsText(file);
       });
-
-      updatedScript += line + '\n'; // Add the processed line to the updated script
-
-      // Update progress
-      processedCount++;
-      setProgress(Math.round((processedCount / totalLines) * 100));
     });
 
-    setScriptData(updatedScript);
-    setMessage('Script updated with new URLs and logic.');
+    Promise.all(filePromises).then((results) => {
+      setScriptFiles(results);
+      setMessage(`Loaded ${results.length} script files.`);
+    });
+  };
+
+  const processScripts = () => {
+    if (!scriptFiles.length || !excelData.length) {
+      setMessage("Please upload scripts and select an Excel file.");
+      return;
+    }
+
+    let processedFiles = [];
+    let totalLines = scriptFiles.reduce(
+      (sum, file) => sum + file.content.split("\n").length,
+      0
+    );
+    let processedCount = 0;
+
+    scriptFiles.forEach((file) => {
+      let scriptLines = file.content.split("\n");
+      let updatedScript = "";
+
+      scriptLines.forEach((line) => {
+        excelData.forEach(({ url, prefix, suffix }) => {
+          if (line.includes(url)) {
+            line = `${prefix} ${line} ${suffix}`;
+          }
+        });
+
+        updatedScript += line + "\n";
+        processedCount++;
+        setProgress(Math.round((processedCount / totalLines) * 100));
+      });
+
+      processedFiles.push({ name: file.name, content: updatedScript });
+    });
+
+    setScriptFiles(processedFiles);
+    setMessage("Scripts processed successfully.");
+  };
+
+  const downloadProcessedFiles = () => {
+    scriptFiles.forEach((file) => {
+      const blob = new Blob([file.content], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
   };
 
   return (
@@ -86,7 +131,7 @@ function App() {
           <Typography variant="h6" gutterBottom>
             LoadRunner Script URL Updater
           </Typography>
-          
+
           {/* Radio Buttons for app selection */}
           <FormControl component="fieldset">
             <FormLabel component="legend">Select Application</FormLabel>
@@ -98,27 +143,20 @@ function App() {
             </RadioGroup>
           </FormControl>
 
-          {/* Upload Excel file */}
+          {/* Upload LoadRunner script folder */}
           <Button variant="contained" component="label">
-            Upload Excel File
-            <FileReaderInput as="binary" onChange={handleExcelUpload} />
+            Upload Script Files (.c)
+            <input type="file" accept=".c" multiple hidden onChange={handleScriptUpload} />
           </Button>
 
-          {/* Upload LoadRunner script file, only accepting .c files */}
-          <input
-            type="file"
-            accept=".c"
-            onChange={handleScriptChange}
-          />
-
-          {/* Button to process the script */}
+          {/* Button to process scripts */}
           <Button
             variant="contained"
             color="primary"
-            onClick={processScript}
-            disabled={!scriptData || !excelData.length}
+            onClick={processScripts}
+            disabled={!scriptFiles.length || !excelData.length}
           >
-            Process Script
+            Process Scripts
           </Button>
 
           {/* Progress Bar */}
@@ -127,18 +165,29 @@ function App() {
           {/* Message to show the status */}
           {message && <Typography variant="body2">{message}</Typography>}
 
-          <Typography variant="body1" gutterBottom>
-            Processed Script Output:
-          </Typography>
+          {/* Download processed scripts */}
+          {scriptFiles.length > 0 && (
+            <Button variant="contained" color="secondary" onClick={downloadProcessedFiles}>
+              Download Processed Scripts
+            </Button>
+          )}
 
-          {/* Display processed script */}
-          <textarea
-            value={scriptData}
-            readOnly
-            rows={15}
-            cols={80}
-            style={{ width: '100%' }}
-          />
+          {/* Processed Script Preview */}
+          <Typography variant="body1" gutterBottom>
+            Processed Script Preview:
+          </Typography>
+          {scriptFiles.map((file, index) => (
+            <div key={index}>
+              <Typography variant="body2">{file.name}</Typography>
+              <textarea
+                value={file.content}
+                readOnly
+                rows={10}
+                cols={80}
+                style={{ width: "100%" }}
+              />
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>
