@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Container, Card, Button, Typography, Box, Input } from "@mui/material";
+import { Container, Card, Button, Typography, Box, Input, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import * as XLSX from "xlsx";
 
 function App() {
-  const [excelData, setExcelData] = useState([]);
+  const [excelData, setExcelData] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedApplication, setSelectedApplication] = useState("");
 
   // Load Excel Data from the public folder (hardcoded path)
   const loadExcelData = async () => {
@@ -12,9 +13,16 @@ function App() {
     const arrayBuffer = await response.arrayBuffer();
     const data = new Uint8Array(arrayBuffer);
     const workbook = XLSX.read(data, { type: "array" });
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-    setExcelData(jsonData);
+    
+    const dataSheets = {};
+    
+    workbook.SheetNames.forEach(sheetName => {
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      dataSheets[sheetName] = jsonData; // Store the sheet data by sheet name
+    });
+    
+    setExcelData(dataSheets);
   };
 
   useEffect(() => {
@@ -29,56 +37,84 @@ function App() {
     setSelectedFiles(fileArray);
   };
 
-  // Regex pattern to match URLs in web_custom_request and web_url
-  const urlRegex = /(?:web_(?:custom_request|url)[^"]*?\s*URL\s*=\s*")([^"]+)"/g;
+  // Handle application selection from dropdown (sheet name)
+  const handleApplicationChange = (e) => {
+    setSelectedApplication(e.target.value);
+  };
+
+  // Regex pattern to match function names in .c files
+  const functionNameRegex = /\w+\s+(\w+)\s*.*\s*{([^}]*)}/g;
 
   const processScript = () => {
-    if (selectedFiles.length === 0 || excelData.length === 0) return;
+    if (selectedFiles.length === 0 || !selectedApplication || !excelData[selectedApplication]) return;
+
+    const appData = excelData[selectedApplication];
 
     selectedFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const script = reader.result;
-        let modifiedScript = script;
+      if (file.name.endsWith(".c")) { // Process only .c files
+        const reader = new FileReader();
+        reader.onload = () => {
+          let script = reader.result;
+          let modifiedScript = script;
 
-        // Extract all URLs using regex
-        const urls = [];
-        let match;
-        while ((match = urlRegex.exec(script)) !== null) {
-          urls.push(match[1]);
-        }
+          // Extract function names using regex
+          let functionMatches = [];
+          let match;
+          while ((match = functionNameRegex.exec(script)) !== null) {
+            functionMatches.push(match[1]); // Capture the function name
+          }
 
-        console.log("Extracted URLs:", urls);
+          console.log("Extracted Function Names:", functionMatches);
 
-        // Modify the URLs based on the Prefix and Suffix from Excel data
-        excelData.forEach(({ URL, Prefix, Suffix }) => {
-          urls.forEach((url) => {
-            if (url === URL) {
-              // Add multi-line Prefix before web_
-              let modifiedUrl = `${Prefix}\nweb_${url.split('://')[1]}`; // Add Prefix before web_
-
-              // Replace the original URL in the script with the modified one
-              const urlRegexForReplacement = new RegExp(`(${url})`, "g");
-              modifiedScript = modifiedScript.replace(urlRegexForReplacement, modifiedUrl);
-
-              // Add the multi-line Suffix after the closing parenthesis and semicolon
-              const suffixRegex = new RegExp(`(${modifiedUrl}[^;]*);`);
-              modifiedScript = modifiedScript.replace(suffixRegex, `$1\n${Suffix};`);
-            }
+          // Modify the function names based on the Prefix from Excel data for selected application
+          appData.forEach(({ URL, Prefix, Suffix }) => {
+            functionMatches.forEach((functionName) => {
+              // Here, you could auto-generate the function names by appending the Prefix to each function
+              const newFunctionName = `${Prefix}${functionName}`;
+              const functionNameRegexForReplacement = new RegExp(`(\\b${functionName}\\b)`, "g");
+              modifiedScript = modifiedScript.replace(functionNameRegexForReplacement, newFunctionName);
+            });
           });
-        });
 
-        // Create a Blob and trigger the download of the modified file
-        const blob = new Blob([modifiedScript], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${file.name.replace(".c", "_modified.c")}`;
-        link.click();
-      };
-      reader.readAsText(file);
+          // Modify the URLs based on the Prefix and Suffix from Excel data for selected application
+          const urlRegex = /(?:web_(?:custom_request|url)[^"]*?\s*URL\s*=\s*")([^"]+)"/g;
+          const urls = [];
+          while ((match = urlRegex.exec(script)) !== null) {
+            urls.push(match[1]);
+          }
+
+          appData.forEach(({ URL, Prefix, Suffix }) => {
+            urls.forEach((url) => {
+              if (url === URL) {
+                // Add multi-line Prefix before web_
+                let modifiedUrl = `${Prefix}\nweb_${url.split('://')[1]}`; // Add Prefix before web_
+
+                // Replace the original URL in the script with the modified one
+                const urlRegexForReplacement = new RegExp(`(${url})`, "g");
+                modifiedScript = modifiedScript.replace(urlRegexForReplacement, modifiedUrl);
+
+                // Add the multi-line Suffix after the closing parenthesis and semicolon
+                const suffixRegex = new RegExp(`(${modifiedUrl}[^;]*);`);
+                modifiedScript = modifiedScript.replace(suffixRegex, `$1\n${Suffix};`);
+              }
+            });
+          });
+
+          // Create a Blob and trigger the download of the modified file
+          const blob = new Blob([modifiedScript], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${file.name.replace(".c", "_modified.c")}`;
+          link.click();
+        };
+        reader.readAsText(file);
+      }
     });
   };
+
+  // Get the list of sheet names as applications
+  const applicationList = Object.keys(excelData);
 
   return (
     <Container maxWidth="md" style={{ marginTop: 20 }}>
@@ -86,6 +122,24 @@ function App() {
         <Typography variant="h5" gutterBottom>
           LoadRunner Script Processor
         </Typography>
+
+        {/* Dropdown to select application */}
+        <Box mt={3}>
+          <FormControl fullWidth>
+            <InputLabel>Select Application</InputLabel>
+            <Select
+              value={selectedApplication}
+              onChange={handleApplicationChange}
+              label="Select Application"
+            >
+              {applicationList.map((app, index) => (
+                <MenuItem key={index} value={app}>
+                  {app}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
         <Box mt={3}>
           <Input
