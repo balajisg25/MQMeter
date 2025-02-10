@@ -1,0 +1,103 @@
+#include <string.h>
+#include <stdlib.h>
+#include "lrw_custom_body.h"
+
+// Base64 Encoding function
+char* base64_encode(const char* input) {
+    static const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t input_length = strlen(input);
+    size_t output_length = 4 * ((input_length + 2) / 3);
+    char* output = malloc(output_length + 1);
+    
+    if (output == NULL) return NULL;  // Error handling
+    
+    for (size_t i = 0, j = 0; i < input_length;) {
+        uint32_t octet_a = i < input_length ? (unsigned char)input[i++] : 0;
+        uint32_t octet_b = i < input_length ? (unsigned char)input[i++] : 0;
+        uint32_t octet_c = i < input_length ? (unsigned char)input[i++] : 0;
+        
+        uint32_t triple = (octet_a << 16) + (octet_b << 8) + octet_c;
+        
+        output[j++] = encoding_table[(triple >> 18) & 0x3F];
+        output[j++] = encoding_table[(triple >> 12) & 0x3F];
+        output[j++] = encoding_table[(triple >> 6) & 0x3F];
+        output[j++] = encoding_table[triple & 0x3F];
+    }
+    
+    for (size_t i = 0; i < output_length % 4; i++) {
+        output[output_length - 1 - i] = '=';
+    }
+    
+    output[output_length] = '\0';
+    return output;
+}
+
+// Random String Generation
+void generate_random_base64_string() {
+    char randomString[17];
+    int i;
+    for (i = 0; i < 16; i++) {
+        randomString[i] = (char)(rand() % 26 + 65); // Uppercase letters (A-Z)
+    }
+    randomString[16] = '\0'; // Null-terminate the string
+
+    // Encode to Base64
+    char* encodedString = base64_encode(randomString);
+
+    // Store the value in a LoadRunner parameter
+    lr_save_string(encodedString, "Base64EncodedString");
+
+    // Output for debugging
+    lr_output_message("Random String: %s", randomString);
+    lr_output_message("Base64 Encoded: %s", encodedString);
+
+    // Free the allocated memory for the Base64 encoded string
+    free(encodedString);
+}
+
+
+
+
+lr_save_string(encodedString, "Base64EncodedString");
+
+
+// Step 1: Generate and Encode Random String
+void generate_random_base64_string() {
+    char randomString[17];
+    int i;
+    for (i = 0; i < 16; i++) {
+        randomString[i] = (char)(rand() % 26 + 65); // Uppercase letters (A-Z)
+    }
+    randomString[16] = '\0'; // Null-terminate the string
+
+    // Step 2: Base64 encode
+    char* encodedString = base64_encode(randomString);
+
+    // Step 3: Save to LoadRunner parameter
+    lr_save_string(encodedString, "Base64EncodedString");
+
+    // Output to debug
+    lr_output_message("Random String: %s", randomString);
+    lr_output_message("Base64 Encoded: %s", encodedString);
+
+    // Clean up
+    free(encodedString);
+}
+
+// Step 4: Use the Base64EncodedString parameter in a request
+Action() {
+    // Generate the random Base64 string
+    generate_random_base64_string();
+
+    // Use the Base64-encoded string in an HTTP request header
+    web_add_header("Authorization", "Basic {Base64EncodedString}");
+
+    // Continue with your web request or other actions
+    web_url("YourWebRequest",
+        "URL=http://example.com/api",
+        "Method=GET",
+        "ExpectedResponseCode=200",
+        LAST);
+
+    return 0;
+}
