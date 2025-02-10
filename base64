@@ -49,7 +49,7 @@ void generate_random_base64_string() {
     randomString[16] = '\0';  // Null-terminate the string
 
     // Encode the random string to Base64
-    char* encodedString = base64_encode(randomString);
+    char* encodedString = base64_encode(randomString);  // Declare as a pointer and call base64_encode()
 
     // Check if Base64 encoding was successful
     if (encodedString != NULL) {
