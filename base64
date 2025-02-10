@@ -49,15 +49,20 @@ void generate_random_base64_string() {
     // Encode the random string to Base64
     char* encodedString = base64_encode(randomString);
 
-    // Save the Base64 encoded string to LoadRunner parameter
-    lr_save_string(encodedString, "Base64EncodedString");
+    // Check if Base64 encoding was successful
+    if (encodedString != NULL) {
+        // Save the Base64 encoded string to LoadRunner parameter
+        lr_save_string(encodedString, "Base64EncodedString");
 
-    // Output to debug
-    lr_output_message("Random String: %s", randomString);
-    lr_output_message("Base64 Encoded: %s", encodedString);
+        // Output to debug
+        lr_output_message("Random String: %s", randomString);
+        lr_output_message("Base64 Encoded: %s", encodedString);
 
-    // Clean up the dynamically allocated memory for Base64 encoded string
-    free(encodedString);
+        // Clean up the dynamically allocated memory for Base64 encoded string
+        free(encodedString);
+    } else {
+        lr_output_message("Base64 Encoding failed.");
+    }
 }
 
 #endif // _CUSTOM_H_
