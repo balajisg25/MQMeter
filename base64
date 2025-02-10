@@ -7,13 +7,13 @@
 // Base64 Encoding function
 char* base64_encode(const char* input) {
     static const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    size_t input_length = strlen(input);
-    size_t output_length = 4 * ((input_length + 2) / 3);
+    unsigned int input_length = strlen(input);
+    unsigned int output_length = 4 * ((input_length + 2) / 3);
     char* output = malloc(output_length + 1);
     
     if (output == NULL) return NULL;  // Error handling
     
-    for (size_t i = 0, j = 0; i < input_length;) {
+    for (unsigned int i = 0, j = 0; i < input_length;) {
         uint32_t octet_a = i < input_length ? (unsigned char)input[i++] : 0;
         uint32_t octet_b = i < input_length ? (unsigned char)input[i++] : 0;
         uint32_t octet_c = i < input_length ? (unsigned char)input[i++] : 0;
@@ -26,7 +26,7 @@ char* base64_encode(const char* input) {
         output[j++] = encoding_table[triple & 0x3F];
     }
     
-    for (size_t i = 0; i < output_length % 4; i++) {
+    for (unsigned int i = 0; i < output_length % 4; i++) {
         output[output_length - 1 - i] = '=';
     }
     
@@ -37,7 +37,7 @@ char* base64_encode(const char* input) {
 // Function to generate a random 16-character string and Base64 encode it
 void generate_random_base64_string() {
     char randomString[17];
-    int i;
+    unsigned int i;
     for (i = 0; i < 16; i++) {
         randomString[i] = (char)(rand() % 26 + 65); // Uppercase letters (A-Z)
     }
