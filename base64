@@ -1,6 +1,8 @@
+#ifndef _CUSTOM_H_
+#define _CUSTOM_H_
+
 #include <string.h>
 #include <stdlib.h>
-#include "lrw_custom_body.h"
 
 // Base64 Encoding function
 char* base64_encode(const char* input) {
@@ -32,7 +34,7 @@ char* base64_encode(const char* input) {
     return output;
 }
 
-// Random String Generation
+// Function to generate a random 16-character string and Base64 encode it
 void generate_random_base64_string() {
     char randomString[17];
     int i;
@@ -44,60 +46,15 @@ void generate_random_base64_string() {
     // Encode to Base64
     char* encodedString = base64_encode(randomString);
 
-    // Store the value in a LoadRunner parameter
-    lr_save_string(encodedString, "Base64EncodedString");
-
-    // Output for debugging
-    lr_output_message("Random String: %s", randomString);
-    lr_output_message("Base64 Encoded: %s", encodedString);
-
-    // Free the allocated memory for the Base64 encoded string
-    free(encodedString);
-}
-
-
-
-
-lr_save_string(encodedString, "Base64EncodedString");
-
-
-// Step 1: Generate and Encode Random String
-void generate_random_base64_string() {
-    char randomString[17];
-    int i;
-    for (i = 0; i < 16; i++) {
-        randomString[i] = (char)(rand() % 26 + 65); // Uppercase letters (A-Z)
-    }
-    randomString[16] = '\0'; // Null-terminate the string
-
-    // Step 2: Base64 encode
-    char* encodedString = base64_encode(randomString);
-
-    // Step 3: Save to LoadRunner parameter
+    // Save the Base64 encoded string to LoadRunner parameter
     lr_save_string(encodedString, "Base64EncodedString");
 
     // Output to debug
     lr_output_message("Random String: %s", randomString);
     lr_output_message("Base64 Encoded: %s", encodedString);
 
-    // Clean up
+    // Clean up the dynamically allocated memory for Base64 encoded string
     free(encodedString);
 }
 
-// Step 4: Use the Base64EncodedString parameter in a request
-Action() {
-    // Generate the random Base64 string
-    generate_random_base64_string();
-
-    // Use the Base64-encoded string in an HTTP request header
-    web_add_header("Authorization", "Basic {Base64EncodedString}");
-
-    // Continue with your web request or other actions
-    web_url("YourWebRequest",
-        "URL=http://example.com/api",
-        "Method=GET",
-        "ExpectedResponseCode=200",
-        LAST);
-
-    return 0;
-}
+#endif // _CUSTOM_H_
