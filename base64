@@ -1,70 +1,77 @@
-#ifndef _CUSTOM_H_
-#define _CUSTOM_H_
-
-#include <string.h>
+#include "web_api.h"
 #include <stdlib.h>
-#include "lrw_custom_body.h"
+#include <string.h>
+#include <time.h>
 
-// Base64 Encoding function
-char* base64_encode(const char* input) {
-    static const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    int input_length = strlen(input);  // Use int instead of unsigned int
-    int output_length = 4 * ((input_length + 2) / 3);  // Base64 encoding formula
-    char* output = (char*)malloc(output_length + 1);  // Allocate memory for the encoded string
-    
-    if (output == NULL) return NULL;  // Error handling
-    
+// Function prototypes
+void generate_random_string(char *buffer, int length);
+void base64_encode(const char *input, int length, char *output);
+
+Action()
+{
+    char random_str[17];    // Holds 16 random characters + null
+    char encoded_str[25];   // Base64 output (24 chars + null)
+    int desired_length = 16;
+
+    // Seed the random generator
+    srand((unsigned int)time(NULL));
+
+    // Generate random string
+    generate_random_string(random_str, desired_length);
+    lr_output_message("Random String: %s", random_str);
+
+    // Base64 encode the string
+    base64_encode(random_str, strlen(random_str), encoded_str);
+    lr_output_message("Base64 Encoded: %s", encoded_str);
+
+    return 0;
+}
+
+// Generates a random alphanumeric string
+void generate_random_string(char *buffer, int length) {
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (int i = 0; i < length; i++) {
+        buffer[i] = charset[rand() % (sizeof(charset) - 1)];
+    }
+    buffer[length] = '\0';
+}
+
+// Encodes a string to Base64
+void base64_encode(const char *input, int length, char *output) {
+    const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     int i = 0, j = 0;
-    while (i < input_length) {
-        int octet_a = i < input_length ? (unsigned char)input[i++] : 0;
-        int octet_b = i < input_length ? (unsigned char)input[i++] : 0;
-        int octet_c = i < input_length ? (unsigned char)input[i++] : 0;
-        
-        int triple = (octet_a << 16) + (octet_b << 8) + octet_c;  // Combine the three octets into a 24-bit value
-        
-        output[j++] = encoding_table[(triple >> 18) & 0x3F];
-        output[j++] = encoding_table[(triple >> 12) & 0x3F];
-        output[j++] = encoding_table[(triple >> 6) & 0x3F];
-        output[j++] = encoding_table[triple & 0x3F];
+    unsigned char byte3[3], byte4[4];
+
+    while (length--) {
+        byte3[i++] = *(input++);
+        if (i == 3) { // Process every 3 bytes
+            byte4[0] = (byte3[0] & 0xFC) >> 2;
+            byte4[1] = ((byte3[0] & 0x03) << 4) | ((byte3[1] & 0xF0) >> 4);
+            byte4[2] = ((byte3[1] & 0x0F) << 2) | ((byte3[2] & 0xC0) >> 6);
+            byte4[3] = byte3[2] & 0x3F;
+
+            for (i = 0; i < 4; i++) {
+                output[j++] = base64_chars[byte4[i]];
+            }
+            i = 0;
+        }
     }
-    
-    // Add padding if necessary
-    for (int i = 0; i < output_length % 4; i++) {
-        output[output_length - 1 - i] = '=';
+
+    // Add padding if needed
+    if (i > 0) {
+        for (int k = i; k < 3; k++) byte3[k] = '\0';
+
+        byte4[0] = (byte3[0] & 0xFC) >> 2;
+        byte4[1] = ((byte3[0] & 0x03) << 4) | ((byte3[1] & 0xF0) >> 4);
+        byte4[2] = ((byte3[1] & 0x0F) << 2) | ((byte3[2] & 0xC0) >> 6);
+        byte4[3] = byte3[2] & 0x3F;
+
+        for (int k = 0; k < i + 1; k++) {
+            output[j++] = base64_chars[byte4[k]];
+        }
+
+        while (i++ < 3) output[j++] = '='; // Add padding
     }
-    
-    output[output_length] = '\0';  // Null-terminate the string
-    return output;
+
+    output[j] = '\0'; // Null-terminate
 }
-
-// Function to generate a random 16-character string and Base64 encode it
-void generate_random_base64_string() {
-    char randomString[17];  // 16 characters + null terminator
-    int i;
-    
-    // Generate a random string of uppercase letters (A-Z)
-    for (i = 0; i < 16; i++) {
-        randomString[i] = (char)(rand() % 26 + 65);  // Uppercase letters (A-Z)
-    }
-    randomString[16] = '\0';  // Null-terminate the string
-
-    // Encode the random string to Base64
-    char* encodedString = base64_encode(randomString);  // Declare as a pointer and call base64_encode()
-
-    // Check if Base64 encoding was successful
-    if (encodedString != NULL) {
-        // Save the Base64 encoded string to LoadRunner parameter
-        lr_save_string(encodedString, "Base64EncodedString");
-
-        // Output to debug
-        lr_output_message("Random String: %s", randomString);
-        lr_output_message("Base64 Encoded: %s", encodedString);
-
-        // Clean up the dynamically allocated memory for Base64 encoded string
-        free(encodedString);
-    } else {
-        lr_output_message("Base64 Encoding failed.");
-    }
-}
-
-#endif // _CUSTOM_H_
