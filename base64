@@ -8,19 +8,19 @@
 // Base64 Encoding function
 char* base64_encode(const char* input) {
     static const char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    unsigned int input_length = strlen(input);
-    unsigned int output_length = 4 * ((input_length + 2) / 3);
-    char* output = (char*)malloc(output_length + 1);
+    int input_length = strlen(input);  // Use int instead of unsigned int
+    int output_length = 4 * ((input_length + 2) / 3);  // Base64 encoding formula
+    char* output = (char*)malloc(output_length + 1);  // Allocate memory for the encoded string
     
     if (output == NULL) return NULL;  // Error handling
     
-    unsigned int i = 0, j = 0;
+    int i = 0, j = 0;
     while (i < input_length) {
-        unsigned int octet_a = i < input_length ? (unsigned char)input[i++] : 0;
-        unsigned int octet_b = i < input_length ? (unsigned char)input[i++] : 0;
-        unsigned int octet_c = i < input_length ? (unsigned char)input[i++] : 0;
+        int octet_a = i < input_length ? (unsigned char)input[i++] : 0;
+        int octet_b = i < input_length ? (unsigned char)input[i++] : 0;
+        int octet_c = i < input_length ? (unsigned char)input[i++] : 0;
         
-        unsigned int triple = (octet_a << 16) + (octet_b << 8) + octet_c;
+        int triple = (octet_a << 16) + (octet_b << 8) + octet_c;  // Combine the three octets into a 24-bit value
         
         output[j++] = encoding_table[(triple >> 18) & 0x3F];
         output[j++] = encoding_table[(triple >> 12) & 0x3F];
@@ -29,7 +29,7 @@ char* base64_encode(const char* input) {
     }
     
     // Add padding if necessary
-    for (unsigned int i = 0; i < output_length % 4; i++) {
+    for (int i = 0; i < output_length % 4; i++) {
         output[output_length - 1 - i] = '=';
     }
     
@@ -39,12 +39,14 @@ char* base64_encode(const char* input) {
 
 // Function to generate a random 16-character string and Base64 encode it
 void generate_random_base64_string() {
-    char randomString[17]; // 16 characters + null terminator
-    unsigned int i;
+    char randomString[17];  // 16 characters + null terminator
+    int i;
+    
+    // Generate a random string of uppercase letters (A-Z)
     for (i = 0; i < 16; i++) {
         randomString[i] = (char)(rand() % 26 + 65);  // Uppercase letters (A-Z)
     }
-    randomString[16] = '\0'; // Null-terminate the string
+    randomString[16] = '\0';  // Null-terminate the string
 
     // Encode the random string to Base64
     char* encodedString = base64_encode(randomString);
