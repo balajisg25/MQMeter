@@ -17,7 +17,7 @@ const App = () => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
 
-      const sheetName = workbook.SheetNames[0]; // Assuming the first sheet contains data
+      const sheetName = workbook.SheetNames[0]; // Assuming first sheet contains data
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
@@ -33,8 +33,8 @@ const App = () => {
 
     data.forEach((row, index) => {
       if (Array.isArray(row) && row.length > 0) {
-        const key = row[0] ? String(row[0]).trim() : ""; // Convert to string before trimming
-        const value = row[1] ? String(row[1]).trim() : "No Data"; // Handle undefined cases
+        const key = row[0] ? String(row[0]).trim() : "";
+        const value = row[1] ? String(row[1]).trim() : "No Data";
 
         switch (key) {
           case "Run Time":
@@ -53,7 +53,7 @@ const App = () => {
             details.sla = value;
             break;
           case "TRANSACTIONS":
-            transactionStartIndex = index + 2; // Transactions start after this
+            transactionStartIndex = index + 2; // Transactions start after this row
             break;
           default:
             break;
@@ -64,16 +64,17 @@ const App = () => {
     if (transactionStartIndex !== -1) {
       for (let i = transactionStartIndex; i < data.length; i++) {
         const row = data[i];
-        if (!Array.isArray(row) || row.length < 7) continue; // Skip invalid rows
+        if (!Array.isArray(row) || row.length < 9) continue; // Ensure at least 9 columns exist
 
         const transaction = {
           transactionName: row[0] ? String(row[0]).trim() : "Unknown",
-          slaStatus: row[1] ? String(row[1]).trim() : "No Data",
           minTime: row[2] ? Number(row[2]) : "No Data",
           avgTime: row[3] ? Number(row[3]) : "No Data",
           maxTime: row[4] ? Number(row[4]) : "No Data",
           percentile90: row[6] ? Number(row[6]) : "No Data",
           slaPass: row[6] && !isNaN(row[6]) && parseFloat(row[6]) <= SLA_THRESHOLD ? "Pass" : "Fail",
+          passCount: row[7] ? Number(row[7]) : 0, // Pass column
+          failCount: row[8] ? Number(row[8]) : 0, // Fail column
         };
 
         transactionsData.push(transaction);
@@ -130,16 +131,26 @@ const App = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Transaction Name</TableCell>
+                <TableCell>Min (s)</TableCell>
+                <TableCell>Avg (s)</TableCell>
+                <TableCell>Max (s)</TableCell>
                 <TableCell>90th Percentile (s)</TableCell>
                 <TableCell>SLA Status</TableCell>
+                <TableCell>Pass Count</TableCell>
+                <TableCell>Fail Count</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {transactions.map((tx, index) => (
                 <TableRow key={index} sx={{ backgroundColor: tx.slaPass === "Fail" ? "#ffebee" : "inherit" }}>
                   <TableCell>{tx.transactionName}</TableCell>
+                  <TableCell>{tx.minTime}</TableCell>
+                  <TableCell>{tx.avgTime}</TableCell>
+                  <TableCell>{tx.maxTime}</TableCell>
                   <TableCell>{tx.percentile90}</TableCell>
                   <TableCell sx={{ color: tx.slaPass === "Fail" ? "red" : "green" }}>{tx.slaPass}</TableCell>
+                  <TableCell>{tx.passCount}</TableCell>
+                  <TableCell>{tx.failCount}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
