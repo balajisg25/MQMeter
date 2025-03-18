@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import { Container, Typography, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
 import * as XLSX from "xlsx";
 
-const SLA_THRESHOLD = 3.0; // Example SLA threshold for 90th percentile
+const SLA_THRESHOLD = 3.0; // SLA threshold for 90th percentile
 
 const App = () => {
   const [testDetails, setTestDetails] = useState(null);
-  const [statistics, setStatistics] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
   const handleFileUpload = (e) => {
@@ -18,7 +17,7 @@ const App = () => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
 
-      const sheetName = workbook.SheetNames[0]; // Assuming first sheet contains data
+      const sheetName = workbook.SheetNames[0]; // Assuming the first sheet contains data
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
@@ -29,14 +28,13 @@ const App = () => {
 
   const processExcelData = (data) => {
     let details = {};
-    let stats = [];
     let transactionsData = [];
     let transactionStartIndex = -1;
 
     data.forEach((row, index) => {
-      if (row.length > 1) {
-        const key = row[0]?.trim();
-        const value = row[1]?.trim() || "No Data";
+      if (Array.isArray(row) && row.length > 0) {
+        const key = row[0] ? String(row[0]).trim() : ""; // Convert to string before trimming
+        const value = row[1] ? String(row[1]).trim() : "No Data"; // Handle undefined cases
 
         switch (key) {
           case "Run Time":
@@ -54,18 +52,8 @@ const App = () => {
           case "SLA":
             details.sla = value;
             break;
-          case "STATISTICS":
-            break; // Skip header row
-          case "Maximum Running Vusers":
-          case "Total Throughput (bytes)":
-          case "Average Throughput (B/s)":
-          case "Total Hits":
-          case "Average Hits per Second":
-          case "Passed Transactions Ratio":
-            stats.push({ metric: key, value });
-            break;
           case "TRANSACTIONS":
-            transactionStartIndex = index + 2; // Start reading transactions after this
+            transactionStartIndex = index + 2; // Transactions start after this
             break;
           default:
             break;
@@ -76,20 +64,16 @@ const App = () => {
     if (transactionStartIndex !== -1) {
       for (let i = transactionStartIndex; i < data.length; i++) {
         const row = data[i];
-        if (row.length < 9) continue; // Skip invalid rows
+        if (!Array.isArray(row) || row.length < 7) continue; // Skip invalid rows
 
         const transaction = {
-          transactionName: row[0] || "Unknown",
-          slaStatus: row[1] || "No Data",
-          minTime: row[2] || "No Data",
-          avgTime: row[3] || "No Data",
-          maxTime: row[4] || "No Data",
-          stdDev: row[5] || "No Data",
-          percentile90: row[6] || "No Data",
-          passCount: row[7] || "0",
-          failCount: row[8] || "0",
-          stopCount: row[9] || "0",
-          slaPass: parseFloat(row[6]) <= SLA_THRESHOLD ? "Pass" : "Fail",
+          transactionName: row[0] ? String(row[0]).trim() : "Unknown",
+          slaStatus: row[1] ? String(row[1]).trim() : "No Data",
+          minTime: row[2] ? Number(row[2]) : "No Data",
+          avgTime: row[3] ? Number(row[3]) : "No Data",
+          maxTime: row[4] ? Number(row[4]) : "No Data",
+          percentile90: row[6] ? Number(row[6]) : "No Data",
+          slaPass: row[6] && !isNaN(row[6]) && parseFloat(row[6]) <= SLA_THRESHOLD ? "Pass" : "Fail",
         };
 
         transactionsData.push(transaction);
@@ -97,7 +81,6 @@ const App = () => {
     }
 
     setTestDetails(details);
-    setStatistics(stats);
     setTransactions(transactionsData);
   };
 
