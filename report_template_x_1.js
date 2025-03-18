@@ -70,19 +70,26 @@ const App = () => {
         if (String(row[0] || "").toLowerCase().includes("transaction name")) continue;
 
         const convertToSeconds = (value) => {
+          if (value === undefined || value === null) return "No Data";
           if (typeof value === "number") return Number(value.toFixed(3));
           const parsed = parseFloat(value);
           return isNaN(parsed) ? "No Data" : Number(parsed.toFixed(3));
         };
 
         const percentile90 = convertToSeconds(row[6]);
+        const slaPass = percentile90 === "No Data" 
+          ? "N/A" 
+          : percentile90 <= SLA_THRESHOLD 
+            ? "Pass" 
+            : "Fail";
+
         transactionsData.push({
           transactionName: String(row[0] || "Unknown").trim(),
           minTime: convertToSeconds(row[2]),
           avgTime: convertToSeconds(row[3]),
           maxTime: convertToSeconds(row[4]),
           percentile90,
-          slaPass: percentile90 !== "No Data" && percentile90 <= SLA_THRESHOLD ? "Pass" : "Fail",
+          slaPass,
           passCount: Number(row[7] || 0),
           failCount: Number(row[8] || 0),
         });
@@ -123,7 +130,6 @@ const App = () => {
     reader.readAsArrayBuffer(file);
   }, [processExcelData]);
 
-  // Filter transactions that don't meet SLA
   const failedSLATransactions = transactions.filter(tx => tx.slaPass === "Fail");
 
   return (
@@ -197,13 +203,22 @@ const App = () => {
             </TableHead>
             <TableBody>
               {transactions.map((tx, index) => (
-                <TableRow key={index} sx={{ backgroundColor: tx.slaPass === "Fail" ? "#ffebee" : "inherit" }}>
+                <TableRow 
+                  key={index} 
+                  sx={{ backgroundColor: tx.slaPass === "Fail" ? "#ffebee" : tx.slaPass === "N/A" ? "#fff3e0" : "inherit" }}
+                >
                   <TableCell>{tx.transactionName}</TableCell>
                   <TableCell>{tx.minTime}</TableCell>
                   <TableCell>{tx.avgTime}</TableCell>
                   <TableCell>{tx.maxTime}</TableCell>
                   <TableCell>{tx.percentile90}</TableCell>
-                  <TableCell sx={{ color: tx.slaPass === "Fail" ? "red" : "green" }}>{tx.slaPass}</TableCell>
+                  <TableCell 
+                    sx={{ 
+                      color: tx.slaPass === "Fail" ? "red" : tx.slaPass === "Pass" ? "green" : "orange" 
+                    }}
+                  >
+                    {tx.slaPass}
+                  </TableCell>
                   <TableCell>{tx.passCount}</TableCell>
                   <TableCell>{tx.failCount}</TableCell>
                 </TableRow>
