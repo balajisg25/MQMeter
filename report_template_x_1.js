@@ -70,18 +70,30 @@ const App = () => {
         if (String(row[0] || "").toLowerCase().includes("transaction name")) continue;
 
         const convertToSeconds = (value) => {
-          if (value === undefined || value === null) return "No Data";
-          if (typeof value === "number") return Number(value.toFixed(3));
+          if (value === undefined || value === null || value === "") return "No Data";
           const parsed = parseFloat(value);
           return isNaN(parsed) ? "No Data" : Number(parsed.toFixed(3));
         };
 
-        const percentile90 = convertToSeconds(row[6]);
-        const slaPass = percentile90 === "No Data" 
-          ? "N/A" 
-          : percentile90 <= SLA_THRESHOLD 
-            ? "Pass" 
-            : "Fail";
+        const percentile90Raw = row[6]; // Keep raw value for debugging
+        const percentile90 = convertToSeconds(percentile90Raw);
+        
+        // Explicit SLA status calculation
+        let slaPass;
+        if (percentile90 === "No Data") {
+          slaPass = "N/A";
+        } else {
+          const percentileValue = Number(percentile90);
+          slaPass = percentileValue <= SLA_THRESHOLD ? "Pass" : "Fail";
+          // Debug logging
+          console.log({
+            transaction: row[0],
+            rawValue: percentile90Raw,
+            convertedValue: percentile90,
+            slaThreshold: SLA_THRESHOLD,
+            slaPass: slaPass
+          });
+        }
 
         transactionsData.push({
           transactionName: String(row[0] || "Unknown").trim(),
