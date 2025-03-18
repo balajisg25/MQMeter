@@ -1,0 +1,32 @@
+Generate a performance test report in Excel for multiple transactions in a web application.
+SLA Target: 3 seconds response time for 90% of transactions
+Performance Metrics for Each Transaction:
+
+Transaction Name (e.g., Login, Search, Checkout)
+
+Average Response Time
+
+90th Percentile Response Time
+
+Max Response Time
+
+Throughput (Transactions per second)
+
+Error Rate (%)
+
+CPU Usage (%)
+
+SLA Status: Mark "Pass" if the 90th percentile is ≤3s, otherwise "Fail."
+
+Recommendations:
+
+If the 90th percentile response time exceeds 3s, suggest performance optimizations.
+
+If CPU usage is over 80%, recommend infrastructure scaling.
+
+
+Format the data into a structured Excel table with columns: Transaction Name, Avg Response Time, 90th Percentile, Max Response Time, Throughput, Error Rate, CPU Usage, SLA Status, and Recommendations.
+
+Highlight all rows where SLA is failed (90th percentile > 3s) in red and pass results in green.
+
+Also, generate a text summary with an overview of the transactions that exceed the SLA of 3 seconds for the 90th percentile response time and recommendations for optimization.
