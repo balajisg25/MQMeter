@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { Container, Button, Typography, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import { Container, Typography, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
 import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
 
-const SLA_THRESHOLD = 3.0; // Example SLA threshold in seconds
+const SLA_THRESHOLD = 3.0; // Example SLA threshold for 90th percentile
 
 const App = () => {
+  const [testDetails, setTestDetails] = useState(null);
+  const [statistics, setStatistics] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [executionDate, setExecutionDate] = useState("");
-  const [executionTime, setExecutionTime] = useState("");
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -19,9 +18,9 @@ const App = () => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
 
-      const sheetName = workbook.SheetNames[0];
+      const sheetName = workbook.SheetNames[0]; // Assuming first sheet contains data
       const sheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
       processExcelData(jsonData);
     };
@@ -29,28 +28,77 @@ const App = () => {
   };
 
   const processExcelData = (data) => {
-    const extractedTransactions = data.map((row) => ({
-      transactionName: row["Transaction Name"],
-      minTime: row["Minimum (s)"],
-      avgTime: row["Average (s)"],
-      maxTime: row["Maximum (s)"],
-      percentile90: row["90th Percentile (s)"],
-      slaStatus: row["90th Percentile (s)"] <= SLA_THRESHOLD ? "Pass" : "Fail",
-    }));
+    let details = {};
+    let stats = [];
+    let transactionsData = [];
+    let transactionStartIndex = -1;
 
-    setTransactions(extractedTransactions);
-    
-    const date = new Date();
-    setExecutionDate(date.toISOString().split("T")[0]);
-    setExecutionTime(date.toLocaleTimeString());
-  };
+    data.forEach((row, index) => {
+      if (row.length > 1) {
+        const key = row[0]?.trim();
+        const value = row[1]?.trim() || "No Data";
 
-  const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(transactions);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Performance Report");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "Performance_Report.xlsx");
+        switch (key) {
+          case "Run Time":
+            details.runTime = value;
+            break;
+          case "Duration":
+            details.duration = value;
+            break;
+          case "Scenario Name":
+            details.scenarioName = value;
+            break;
+          case "Result Name":
+            details.resultName = value;
+            break;
+          case "SLA":
+            details.sla = value;
+            break;
+          case "STATISTICS":
+            break; // Skip header row
+          case "Maximum Running Vusers":
+          case "Total Throughput (bytes)":
+          case "Average Throughput (B/s)":
+          case "Total Hits":
+          case "Average Hits per Second":
+          case "Passed Transactions Ratio":
+            stats.push({ metric: key, value });
+            break;
+          case "TRANSACTIONS":
+            transactionStartIndex = index + 2; // Start reading transactions after this
+            break;
+          default:
+            break;
+        }
+      }
+    });
+
+    if (transactionStartIndex !== -1) {
+      for (let i = transactionStartIndex; i < data.length; i++) {
+        const row = data[i];
+        if (row.length < 9) continue; // Skip invalid rows
+
+        const transaction = {
+          transactionName: row[0] || "Unknown",
+          slaStatus: row[1] || "No Data",
+          minTime: row[2] || "No Data",
+          avgTime: row[3] || "No Data",
+          maxTime: row[4] || "No Data",
+          stdDev: row[5] || "No Data",
+          percentile90: row[6] || "No Data",
+          passCount: row[7] || "0",
+          failCount: row[8] || "0",
+          stopCount: row[9] || "0",
+          slaPass: parseFloat(row[6]) <= SLA_THRESHOLD ? "Pass" : "Fail",
+        };
+
+        transactionsData.push(transaction);
+      }
+    }
+
+    setTestDetails(details);
+    setStatistics(stats);
+    setTransactions(transactionsData);
   };
 
   return (
@@ -59,38 +107,60 @@ const App = () => {
         LoadRunner Performance Report
       </Typography>
       <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} />
-      {transactions.length > 0 && (
+
+      {testDetails && (
         <>
           <Typography variant="h6" sx={{ my: 2 }}>
-            Execution Date: {executionDate} | Execution Time: {executionTime}
+            **Test Execution Details**
+          </Typography>
+          <Table sx={{ my: 2 }}>
+            <TableBody>
+              <TableRow>
+                <TableCell>Run Time</TableCell>
+                <TableCell>{testDetails.runTime}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Duration</TableCell>
+                <TableCell>{testDetails.duration}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Scenario Name</TableCell>
+                <TableCell>{testDetails.scenarioName}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Result Name</TableCell>
+                <TableCell>{testDetails.resultName}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>SLA</TableCell>
+                <TableCell sx={{ color: testDetails.sla === "Not Defined" ? "red" : "green" }}>
+                  {testDetails.sla}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+
+          <Typography variant="h6" sx={{ my: 2 }}>
+            **Transactions**
           </Typography>
           <Table sx={{ my: 2 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Transaction Name</TableCell>
-                <TableCell>Min (s)</TableCell>
-                <TableCell>Avg (s)</TableCell>
-                <TableCell>Max (s)</TableCell>
                 <TableCell>90th Percentile (s)</TableCell>
                 <TableCell>SLA Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {transactions.map((tx, index) => (
-                <TableRow key={index} sx={{ backgroundColor: tx.slaStatus === "Fail" ? "#ffebee" : "inherit" }}>
+                <TableRow key={index} sx={{ backgroundColor: tx.slaPass === "Fail" ? "#ffebee" : "inherit" }}>
                   <TableCell>{tx.transactionName}</TableCell>
-                  <TableCell>{tx.minTime}</TableCell>
-                  <TableCell>{tx.avgTime}</TableCell>
-                  <TableCell>{tx.maxTime}</TableCell>
                   <TableCell>{tx.percentile90}</TableCell>
-                  <TableCell sx={{ color: tx.slaStatus === "Fail" ? "red" : "green" }}>{tx.slaStatus}</TableCell>
+                  <TableCell sx={{ color: tx.slaPass === "Fail" ? "red" : "green" }}>{tx.slaPass}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <Button variant="contained" color="primary" onClick={exportToExcel}>
-            Export to Excel
-          </Button>
         </>
       )}
     </Container>
