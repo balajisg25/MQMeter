@@ -53,7 +53,7 @@ const App = () => {
             details.sla = value;
             break;
           case "TRANSACTIONS":
-            transactionStartIndex = index + 2; // Transactions start after this row
+            transactionStartIndex = index + 3; // Transactions start after this row
             break;
           default:
             break;
@@ -66,12 +66,22 @@ const App = () => {
         const row = data[i];
         if (!Array.isArray(row) || row.length < 9) continue; // Ensure at least 9 columns exist
 
+        if (row[0] && row[0].toLowerCase().includes("transaction name")) continue; // Ignore the "Transaction Name" row
+
+        const convertToSeconds = (value) => {
+          if (typeof value === "number") return value; // Already in seconds
+          if (!value || isNaN(value)) return "No Data"; // Invalid data
+
+          const parsedValue = parseFloat(value);
+          return isNaN(parsedValue) ? "No Data" : parsedValue;
+        };
+
         const transaction = {
           transactionName: row[0] ? String(row[0]).trim() : "Unknown",
-          minTime: row[2] ? Number(row[2]) : "No Data",
-          avgTime: row[3] ? Number(row[3]) : "No Data",
-          maxTime: row[4] ? Number(row[4]) : "No Data",
-          percentile90: row[6] ? Number(row[6]) : "No Data",
+          minTime: convertToSeconds(row[2]),
+          avgTime: convertToSeconds(row[3]),
+          maxTime: convertToSeconds(row[4]),
+          percentile90: convertToSeconds(row[6]),
           slaPass: row[6] && !isNaN(row[6]) && parseFloat(row[6]) <= SLA_THRESHOLD ? "Pass" : "Fail",
           passCount: row[7] ? Number(row[7]) : 0, // Pass column
           failCount: row[8] ? Number(row[8]) : 0, // Fail column
