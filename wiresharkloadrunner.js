@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { Container, Typography, Button, Box, TextField } from "@mui/material";
 import FileSaver from "file-saver";
-import pcapParser from "pcap-parser"; // A package to parse PCAP files
+import pcap from "pcap"; // Use node-pcap for better parsing
 
 const App = () => {
   const [loadRunnerScript, setLoadRunnerScript] = useState("");
   const [fileName, setFileName] = useState("");
 
-  // Function to handle file selection
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -16,42 +15,41 @@ const App = () => {
     }
   };
 
-  // Function to parse PCAP file
   const parsePcapFile = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const buffer = e.target.result;
-      const parser = pcapParser.parse(buffer);
+      const pcapSession = pcap.decode(buffer);
+
       let script = "LoadRunner Script Generated from PCAP\n\n";
 
-      parser.on("packet", (packet) => {
-        const httpPayload = extractHttpPayload(packet.data);
-        if (httpPayload) {
-          script += generateLoadRunnerCode(httpPayload) + "\n\n";
+      pcapSession.on("packet", (packet) => {
+        if (packet.payload.payload.payload.sport === 80 || packet.payload.payload.payload.sport === 443) {
+          const httpPayload = extractHttpPayload(packet.payload.payload.payload.data);
+          if (httpPayload) {
+            script += generateLoadRunnerCode(httpPayload) + "\n\n";
+          }
         }
       });
 
-      parser.on("end", () => {
+      pcapSession.on("end", () => {
         setLoadRunnerScript(script);
       });
     };
     reader.readAsArrayBuffer(file);
   };
 
-  // Extract HTTP payload from PCAP packet
   const extractHttpPayload = (data) => {
     try {
       const textDecoder = new TextDecoder("utf-8");
       const decodedData = textDecoder.decode(new Uint8Array(data));
-      if (decodedData.includes("HTTP")) return decodedData;
-      return null;
+      return decodedData.includes("HTTP") ? decodedData : null;
     } catch (error) {
       console.error("Error extracting HTTP payload:", error);
       return null;
     }
   };
 
-  // Generate LoadRunner script code from HTTP request
   const generateLoadRunnerCode = (httpRequest) => {
     const lines = httpRequest.split("\n");
     if (lines.length === 0) return "";
@@ -80,7 +78,6 @@ const App = () => {
     LAST);`;
   };
 
-  // Function to download the script
   const downloadScript = () => {
     const blob = new Blob([loadRunnerScript], { type: "text/plain;charset=utf-8" });
     FileSaver.saveAs(blob, "loadrunner_script.c");
