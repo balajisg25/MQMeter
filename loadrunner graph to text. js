@@ -1,0 +1,132 @@
+import React, { useState } from "react";
+import Tesseract from "tesseract.js";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement } from "chart.js";
+
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+
+const App = () => {
+  const [image, setImage] = useState(null);
+  const [performanceData, setPerformanceData] = useState([]);
+  const [analysisReport, setAnalysisReport] = useState("");
+
+  // Handle image upload
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImage(URL.createObjectURL(file));
+      extractTextFromImage(file);
+    }
+  };
+
+  // Extract response time data using OCR
+  const extractTextFromImage = async (imageFile) => {
+    const { data } = await Tesseract.recognize(imageFile, "eng");
+    const extractedData = processLoadRunnerData(data.text);
+    setPerformanceData(extractedData);
+    setAnalysisReport(analyzePerformanceData(extractedData));
+  };
+
+  // Process extracted text into structured response time data
+  const processLoadRunnerData = (text) => {
+    const lines = text.split("\n");
+    return lines
+      .map((line) => line.match(/([a-zA-Z0-9_]+),\s*(\d+:\d+),\s*(\d+\.\d+)/)) // Extracts Transaction, Time, and Response Time
+      .filter(Boolean)
+      .map(([, transaction, time, responseTime]) => ({
+        transaction,
+        time,
+        responseTime: parseFloat(responseTime),
+      }));
+  };
+
+  // Analyze performance data to detect trends and spikes
+  const analyzePerformanceData = (data) => {
+    if (!data || data.length === 0) return "No data available for analysis.";
+
+    let totalResponseTime = 0;
+    let maxResponseTime = 0;
+    let minResponseTime = Number.MAX_VALUE;
+    let peakTransaction = "";
+    let peakTime = "";
+    let previousResponseTime = data[0].responseTime;
+    let isStable = true;
+    let spikes = [];
+
+    for (let i = 0; i < data.length; i++) {
+      const point = data[i];
+      totalResponseTime += point.responseTime;
+
+      if (point.responseTime > maxResponseTime) {
+        maxResponseTime = point.responseTime;
+        peakTime = point.time;
+        peakTransaction = point.transaction;
+      }
+      
+      if (point.responseTime < minResponseTime) {
+        minResponseTime = point.responseTime;
+      }
+
+      // Detect spikes (20% or more increase from previous response time)
+      if (i > 0 && point.responseTime > previousResponseTime * 1.2) {
+        spikes.push({ transaction: point.transaction, time: point.time, value: point.responseTime });
+        isStable = false;
+      }
+
+      previousResponseTime = point.responseTime;
+    }
+
+    const avgResponseTime = (totalResponseTime / data.length).toFixed(2);
+    let report = `Performance Test Analysis:\n\n`;
+    report += `- **Average Response Time:** ${avgResponseTime} ms\n`;
+    report += `- **Peak Response Time:** ${maxResponseTime} ms at ${peakTime} (Transaction: ${peakTransaction})\n`;
+    report += `- **Minimum Response Time:** ${minResponseTime} ms\n`;
+    report += isStable ? "- **System Stability:** Stable response time.\n" : "- **System Stability:** Response time fluctuations detected.\n";
+
+    if (spikes.length > 0) {
+      report += `- **Significant Spikes Detected at:**\n`;
+      spikes.forEach((spike) => {
+        report += `  - ${spike.time} (Transaction: ${spike.transaction}, Response Time: ${spike.value} ms)\n`;
+      });
+    } else {
+      report += "- **No major spikes detected.**\n";
+    }
+
+    return report;
+  };
+
+  return (
+    <div>
+      <h1>LoadRunner Performance Report</h1>
+      <input type="file" accept="image/*" onChange={handleImageChange} />
+      {image && <img src={image} alt="Uploaded Graph" style={{ width: "100%" }} />}
+      
+      {performanceData.length > 0 && (
+        <>
+          <h2>Performance Analysis</h2>
+          <pre>{analysisReport}</pre>
+
+          <Line
+            data={{
+              labels: performanceData.map((d) => `${d.transaction} (${d.time})`),
+              datasets: [
+                {
+                  label: "Avg Response Time (ms)",
+                  data: performanceData.map((d) => d.responseTime),
+                  borderColor: "blue",
+                  borderWidth: 2,
+                  fill: false,
+                },
+              ],
+            }}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+export default App;
+
+
+npm install react-chartjs-2 chart.js tesseract.js
