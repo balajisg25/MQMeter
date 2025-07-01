@@ -1,0 +1,67 @@
+Introduction (to add before prompts in your presentation)
+
+As a Performance Testing Expert, I’m evaluating two AI models to automate and enhance performance reporting. Below are the practical prompts I use to test their capability in handling typical performance analytics tasks.
+
+
+---
+
+Scenario 1: Upload response time table and ask for report
+
+Prompt:
+
+> "As a performance testing expert, please analyze this response time table and provide a comprehensive summary report highlighting average, minimum, and maximum response times, along with any significant trends."
+
+
+
+
+---
+
+Scenario 2: Upload response time table and ask for response time above SLA
+
+Prompt:
+
+> "From a performance testing perspective, identify all response times exceeding the SLA threshold of 2 seconds, and summarize the count per service."
+
+
+
+
+---
+
+Scenario 3: Upload response time table and ask for error rate
+
+Prompt:
+
+> "Considering best practices in performance testing, calculate the error rate from this response time data, treating response times with 'error' status or those above 5 seconds as errors."
+
+
+
+
+---
+
+Scenario 4: Upload average response time graph and ask for analysis
+
+Prompt:
+
+> "Analyze this average response time graph as a performance testing specialist and explain any significant spikes or dips, including possible root causes."
+
+
+
+
+---
+
+Scenario 5: Upload Dynatrace graph and ask for analysis
+
+Prompt:
+
+> "Using your expertise in performance testing, review this Dynatrace graph and provide insights on system health, bottlenecks, and potential reasons for anomalies."
+
+
+
+
+---
+
+Scenario 6: Check the result file can be saved in different file formats
+
+Prompt:
+
+> "After generating the performance report, save the output in CSV, Excel, and PDF formats to ensure compatibility with various reporting needs."
