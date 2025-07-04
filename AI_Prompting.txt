@@ -65,3 +65,8 @@ Scenario 6: Check the result file can be saved in different file formats
 Prompt:
 
 > "After generating the performance report, save the output in CSV, Excel, and PDF formats to ensure compatibility with various reporting needs."
+
+
+-----------
+
+"Create a comparison chart showing the 90th percentile response times for each transaction from LoadRunner Run 1, Run 2, and Run 3 (data from different sheets). Present the transactions on the X-axis and response times on the Y-axis, with separate series for each run. Include an SLA line at 2 seconds and highlight whether Run 3 meets the SLA for each transaction."
