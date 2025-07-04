@@ -1,0 +1,79 @@
+Role: You are a Performance Test Expert skilled in LoadRunner analysis and Excel-based reporting.
+
+Objective: Analyze the LoadRunner response time data and generate a structured Excel performance summary report.
+
+Requirements:
+
+1. SLA Compliance Analysis:
+
+For each transaction, evaluate the 90th percentile response time against the SLA threshold (default SLA = 3 seconds unless specified).
+
+Add a new column labeled "SLA Status" with values:
+
+"Under SLA" if 90th percentile ≤ SLA
+
+"SLA Breached" if 90th percentile > SLA
+
+
+
+
+2. Top 5 Slowest Transactions:
+
+Create a new sheet or section showing the Top 5 transactions with the highest 90th percentile response times.
+
+Include columns: Transaction Name, 90th Percentile, SLA, SLA Status
+
+
+
+3. Graph:
+
+Insert a bar chart representing the Top 5 response times.
+
+X-axis: Transaction names
+
+Y-axis: 90th percentile response times (in seconds)
+
+Title: "Top 5 Slowest Transactions by 90th Percentile"
+
+
+
+4. Excel Formatting:
+
+Use conditional formatting on the SLA Status column:
+
+Green fill for “Under SLA”
+
+Red fill for “SLA Breached”
+
+
+Add filters to each column header
+
+Bold and center titles
+
+
+
+
+Input: LoadRunner response time table (CSV or Excel format) with columns like:
+
+Transaction Name
+
+Average Response Time
+
+90th Percentile Response Time
+
+Minimum
+
+Maximum
+
+Standard Deviation
+
+
+Output: A professional Excel workbook (.xlsx) with:
+
+Summary sheet (SLA Analysis)
+
+Top 5 sheet
+
+Embedded bar chart
+
+Clear formatting and insights ready for stakeholders
