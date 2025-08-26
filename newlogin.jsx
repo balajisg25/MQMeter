@@ -1,40 +1,33 @@
+
 // App.js
-import React, { useState, useMemo } from 'react';
-import { ThemeProvider, createTheme, CssBaseline, Box, Switch } from '@mui/material';
+import React, { useState } from 'react';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import Login from './Login';
 
-const getDesignTokens = (mode) => ({
-  palette: {
-    mode,
-    ...(mode === 'light'
-      ? {
-          // Light mode palette
-          primary: { main: '#2e7d32' }, // Green
-          background: { default: '#f9fbe7' },
-        }
-      : {
-          // Dark mode palette
-          primary: { main: '#388e3c' },
-          background: { default: '#212121' },
-        }),
-  },
-});
-
 export default function App() {
-  const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const [mode, setMode] = useState(prefersDarkMode ? 'dark' : 'light');
-  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+  const preferredDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const [mode, setMode] = useState(preferredDarkMode ? 'dark' : 'light');
+
+  const theme = createTheme({
+    palette: {
+      mode: mode,
+      primary: { main: '#2e7d32' },
+      background: { default: mode === 'light' ? '#f9fbe7' : '#212121' }
+    }
+  });
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ p: 3 }}>
-        <Switch checked={mode === 'dark'} onChange={() => setMode(mode === 'light' ? 'dark' : 'light')} />
-        <Login />
-      </Box>
+      <button onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}>
+        {mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+      </button>
+      <Login />
     </ThemeProvider>
   );
 }
+
 
 
 // Login.js
