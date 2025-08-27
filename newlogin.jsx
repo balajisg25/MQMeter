@@ -57,6 +57,28 @@ export default function Login() {
     </Box>
   );
 }
+import axios from 'axios';
+
+// ...inside your component
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post('http://localhost:5000/api/auth/login', {
+      username: user,
+      password: pass
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    // Handle login success (e.g., save token, navigate)
+    console.log(response.data);
+  } catch (error) {
+    // Handle login error (e.g., show error message)
+    console.error(error.response ? error.response.data : "Login failed");
+  }
+};
+
 
 // server.js or app.js
 const express = require('express');
