@@ -110,3 +110,63 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('Server running'));
+
+//test
+import React, { useState } from 'react';
+import { AppBar, Toolbar, Typography, Button, Menu, MenuItem, Box } from '@mui/material';
+
+function MegaMenuNavbar() {
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <AppBar position="static" color="primary">
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1 }} color="inherit">
+            GreenBrand
+          </Typography>
+          <Button color="inherit" onClick={handleMenuOpen}>
+            Mega Menu
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            PaperProps={{
+              style: { minWidth: 500, background: '#f1f8e9', borderRadius: 12 },
+            }}
+          >
+            <Box sx={{ display: 'flex', px: 3, py: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" color="primary">Products</Typography>
+                <MenuItem onClick={handleMenuClose}>Green Phones</MenuItem>
+                <MenuItem onClick={handleMenuClose}>Eco Laptops</MenuItem>
+                <MenuItem onClick={handleMenuClose}>Accessories</MenuItem>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" color="primary">Services</Typography>
+                <MenuItem onClick={handleMenuClose}>Consulting</MenuItem>
+                <MenuItem onClick={handleMenuClose}>Support</MenuItem>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" color="primary">About</Typography>
+                <MenuItem onClick={handleMenuClose}>Our Team</MenuItem>
+                <MenuItem onClick={handleMenuClose}>Contact Us</MenuItem>
+              </Box>
+            </Box>
+          </Menu>
+          <Button color="inherit">Contact</Button>
+        </Toolbar>
+      </AppBar>
+    </ThemeProvider>
+  );
+}
+
+export default MegaMenuNavbar;
