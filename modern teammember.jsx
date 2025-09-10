@@ -72,3 +72,44 @@ const TeamMembersPage = () => {
 };
 
 export default TeamMembersPage;
+
+
+import React from "react";
+import {
+  Card,
+  CardContent,
+  Avatar,
+  Typography,
+  Stack,
+  Box
+} from "@mui/material";
+
+const TeamMemberCard = ({ name, photo_url, date_of_birth, wedding_anniversary, mobile }) => (
+  <Card sx={{ maxWidth: 330, minWidth: 270, m: 1, boxShadow: 3 }}>
+    <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+      <Avatar
+        src={photo_url}
+        alt={name}
+        sx={{ width: 88, height: 88, mb: 1.5 }}
+      />
+    </Box>
+    <CardContent>
+      <Stack spacing={1}>
+        <Typography variant="h6" align="center">
+          {name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Date of Birth: {date_of_birth}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Wedding Anniversary: {wedding_anniversary}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Mobile: {mobile}
+        </Typography>
+      </Stack>
+    </CardContent>
+  </Card>
+);
+
+export default TeamMemberCard;
