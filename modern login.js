@@ -164,57 +164,56 @@ export default function GlassLogin() {
 }
 
 
-import React, { useState } from "react";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Typography from "@mui/material/Typography";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import React, { useState } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
-function TopBar() {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [submenuAnchorEl, setSubmenuAnchorEl] = useState(null);
+export default function ScriptingMenuTopbar() {
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [submenuAnchor, setSubmenuAnchor] = useState(null);
 
   return (
-    <AppBar
-      position="static"
-      sx={{
-        bgcolor: "rgba(16, 130, 67, 0.7)", // semi-transparent green
-        backdropFilter: "blur(8px)", // optional, for glass effect
-        boxShadow: "none"
-      }}
-    >
+    <AppBar position="static">
       <Toolbar>
-        <IconButton edge="start" color="inherit" onClick={e => setAnchorEl(e.currentTarget)}>
-          <MenuIcon />
-        </IconButton>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          My App
-        </Typography>
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-          <MenuItem onClick={() => setAnchorEl(null)}>Home</MenuItem>
+        <Box sx={{ flexGrow: 1 }} />
+        <Button
+          color="inherit"
+          onClick={e => setMenuAnchor(e.currentTarget)}
+        >
+          Scripting
+        </Button>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={() => setMenuAnchor(null)}
+        >
           <MenuItem
             onClick={e => {
-              e.stopPropagation();
-              setSubmenuAnchorEl(e.currentTarget);
+              setSubmenuAnchor(e.currentTarget);
             }}
-            sx={{ display: "flex", justifyContent: "space-between" }}
+            sx={{ display: 'flex', justifyContent: 'space-between' }}
           >
-            More <ArrowRightIcon fontSize="small" sx={{ ml: 1 }} />
+            Convert <ArrowRightIcon fontSize="small" sx={{ ml: 1 }} />
           </MenuItem>
         </Menu>
         <Menu
-          anchorEl={submenuAnchorEl}
-          open={Boolean(submenuAnchorEl)}
-          onClose={() => setSubmenuAnchorEl(null)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
+          anchorEl={submenuAnchor}
+          open={Boolean(submenuAnchor)}
+          onClose={() => setSubmenuAnchor(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
-          <MenuItem onClick={() => setSubmenuAnchorEl(null)}>Profile</MenuItem>
-          <MenuItem onClick={() => setSubmenuAnchorEl(null)}>Settings</MenuItem>
+          <MenuItem onClick={() => { /* log convert action */ }}>
+            Log Convert
+          </MenuItem>
+          <MenuItem onClick={() => { /* apo convert action */ }}>
+            Apo Convert
+          </MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
