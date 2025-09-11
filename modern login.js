@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ifimport React, { useState } from 'react';
 import {
   Grid,
   Paper,
@@ -160,5 +160,63 @@ export default function GlassLogin() {
         </Typography>
       </Paper>
     </Box>
+  );
+}
+
+
+import React, { useState } from "react";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+
+function TopBar() {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [submenuAnchorEl, setSubmenuAnchorEl] = useState(null);
+
+  return (
+    <AppBar
+      position="static"
+      sx={{
+        bgcolor: "rgba(16, 130, 67, 0.7)", // semi-transparent green
+        backdropFilter: "blur(8px)", // optional, for glass effect
+        boxShadow: "none"
+      }}
+    >
+      <Toolbar>
+        <IconButton edge="start" color="inherit" onClick={e => setAnchorEl(e.currentTarget)}>
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          My App
+        </Typography>
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+          <MenuItem onClick={() => setAnchorEl(null)}>Home</MenuItem>
+          <MenuItem
+            onClick={e => {
+              e.stopPropagation();
+              setSubmenuAnchorEl(e.currentTarget);
+            }}
+            sx={{ display: "flex", justifyContent: "space-between" }}
+          >
+            More <ArrowRightIcon fontSize="small" sx={{ ml: 1 }} />
+          </MenuItem>
+        </Menu>
+        <Menu
+          anchorEl={submenuAnchorEl}
+          open={Boolean(submenuAnchorEl)}
+          onClose={() => setSubmenuAnchorEl(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+        >
+          <MenuItem onClick={() => setSubmenuAnchorEl(null)}>Profile</MenuItem>
+          <MenuItem onClick={() => setSubmenuAnchorEl(null)}>Settings</MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
   );
 }
