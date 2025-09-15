@@ -39,3 +39,38 @@ try:
 
 finally:
     driver.quit()
+
+
+
+
+
+const { remote } = require('webdriverio');
+
+const options = {
+  protocol: 'https',
+  hostname: 'YOUR_CLOUD_HOST.perfectomobile.com',
+  port: 443,
+  path: '/nexperience/perfectomobile/wd/hub',
+  capabilities: {
+    platformName: 'Android',
+    platformVersion: '12',  // example
+    deviceName: 'YOUR_DEVICE_ID',
+    automationName: 'UiAutomator2',
+    appPackage: 'com.mode.mybank', // Package for MyBank app (confirm for your version)
+    appActivity: 'com.mode.mybank.MainActivity', // Typical main activity, adjust if known
+    securityToken: 'YOUR_PERFECTO_SECURITY_TOKEN'
+  }
+};
+
+async function openMyBankApp() {
+  const driver = await remote(options);
+  try {
+    // This will launch MyBank app directly
+    console.log('MyBank app opened successfully.');
+    // Further interactions can be scripted here
+  } finally {
+    await driver.deleteSession();
+  }
+}
+
+openMyBankApp();
