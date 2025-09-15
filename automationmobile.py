@@ -1,37 +1,41 @@
 from appium import webdriver
-from appium.webdriver.common.appiumby import AppiumBy
-import time
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-# --- Step 1: Set Desired Capabilities ---
+# Perfecto Cloud details
+cloud_name = "<your-cloud>.perfectomobile.com"
+security_token = "<your-security-token>"
+
+# Replace with your exact Perfecto device ID
+specific_device_id = "R58M35XXXXY"   # example: Samsung Galaxy S21
+
+# Desired capabilities for Play Store
 desired_caps = {
-    "platformName": "Android",
-    "deviceName": "YOUR_DEVICE_ID",              # Replace with your Perfecto device ID
-    "securityToken": "YOUR_SECURITY_TOKEN",      # Replace with your Perfecto security token
-    "automationName": "UiAutomator2",
-    "noReset": True                              # Optional: prevents app data reset between sessions
+    'platformName': 'Android',
+    'deviceName': specific_device_id,   # Specific device ID
+    'appPackage': 'com.android.vending',
+    'appActivity': 'com.google.android.finsky.activities.MainActivity',
+    'securityToken': security_token,
+    'newCommandTimeout': 300            # keeps session alive longer
 }
 
-# --- Step 2: Initialize Remote WebDriver Session ---
-driver = webdriver.Remote(
-    command_executor='https://YOUR_CLOUD_NAME.perfectomobile.com/nexperience/perfectomobile/wd/hub',  # Replace YOUR_CLOUD_NAME
-    desired_capabilities=desired_caps
-)
+# Appium server URL (Perfecto)
+url = f"https://{cloud_name}/nexperience/perfectomobile/wd/hub"
+
+# Create driver session
+driver = webdriver.Remote(url, desired_caps)
 
 try:
-    # Wait a few seconds for device to be ready
-    time.sleep(5)
+    print(f"Play Store launched on device {specific_device_id} ✅")
 
-    # --- Step 3: Locate Play Store icon by accessibility description ---
-    play_store_icon = driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Play Store")')
-
-    # --- Step 4: Click the Play Store app icon ---
-    play_store_icon.click()
-
-    # --- Step 5: Wait for Play Store app to open (wait for search box or main UI element) ---
-    time.sleep(10)  # Adjust as needed or replace with explicit waits
-
-    print("Play Store launched successfully on Perfecto cloud device.")
+    # Wait for search bar to appear
+    wait = WebDriverWait(driver, 20)
+    search_box = wait.until(
+        EC.presence_of_element_located((By.XPATH, "//android.widget.EditText"))
+    )
+    search_box.send_keys("WhatsApp")
+    driver.press_keycode(66)  # press Enter to search
 
 finally:
-    # --- Step 6: End the session ---
     driver.quit()
