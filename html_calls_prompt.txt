@@ -4,33 +4,28 @@ Objective: Analyze the attached LoadRunner response time results table along wit
 
 Requirements:
 
-1. SLA Compliance Check Table (Based on Functionality)
+1. SLA Compliance Check Table
 
-Use the param sheet which contains:
+Build the SLA Compliance Table with only these columns:
 
-Transaction Name
+Transaction Name (if Transaction Type = main)
 
-Functionality
+Sub Transaction Name (if not main)
 
-Transaction Type
+URL
 
-Calls
+Min Response Time
+
+Max Response Time
+
+Avg Response Time
+
+90th Percentile Response Time
+
+SLA Status ("Under SLA" or "SLA Breached")
 
 
-Join this data with the LoadRunner 90th percentile response time results.
-
-For each row:
-
-If Transaction Type = main, place it under Transaction Name.
-
-If not, place it under Sub Transaction Name.
-
-
-Add a URL column for each Transaction Name.
-
-Compare the 90th percentile response time with the SLA target (default SLA = 3 seconds unless specified).
-
-Show SLA compliance status ("Under SLA" / "SLA Breached").
+SLA target = 3 seconds (unless specified).
 
 Make the table filterable/searchable in the HTML report.
 
@@ -38,9 +33,9 @@ Make the table filterable/searchable in the HTML report.
 
 2. Top 5 Slowest Transactions
 
-Identify the top 5 transactions (by 90th percentile response time).
+List the top 5 transactions with the highest 90th percentile response times.
 
-Include Transaction Name, Functionality, Response Time, and SLA Status.
+Include Transaction Name, Sub Transaction Name, 90th Response Time, and SLA Status.
 
 
 
@@ -50,7 +45,7 @@ Create a bar chart of the Top 5 slowest transactions by 90th percentile response
 
 Y-axis: Response time (seconds)
 
-X-axis: Transaction Name
+X-axis: Transaction Name (or Sub Transaction Name where applicable).
 
 
 
