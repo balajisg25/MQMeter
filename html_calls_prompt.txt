@@ -1,0 +1,69 @@
+LoadRunner Test Analysis and Performance Reporting
+
+Objective: Analyze the attached LoadRunner response time results table along with the param sheet and generate a comprehensive HTML performance summary report.
+
+Requirements:
+
+1. SLA Compliance Check Table (Based on Functionality)
+
+Use the param sheet which contains:
+
+Transaction Name
+
+Functionality
+
+Transaction Type
+
+Calls
+
+
+Join this data with the LoadRunner 90th percentile response time results.
+
+For each row:
+
+If Transaction Type = main, place it under Transaction Name.
+
+If not, place it under Sub Transaction Name.
+
+
+Add a URL column for each Transaction Name.
+
+Compare the 90th percentile response time with the SLA target (default SLA = 3 seconds unless specified).
+
+Show SLA compliance status ("Under SLA" / "SLA Breached").
+
+Make the table filterable/searchable in the HTML report.
+
+
+
+2. Top 5 Slowest Transactions
+
+Identify the top 5 transactions (by 90th percentile response time).
+
+Include Transaction Name, Functionality, Response Time, and SLA Status.
+
+
+
+3. Graph
+
+Create a bar chart of the Top 5 slowest transactions by 90th percentile response time.
+
+Y-axis: Response time (seconds)
+
+X-axis: Transaction Name
+
+
+
+4. HTML Report
+
+Sections:
+
+Executive Summary
+
+SLA Compliance Table (with filter/search)
+
+Top 5 Response Time Table
+
+Bar Chart (embedded via base64 or Chart.js)
+
+Observations/Recommendations
