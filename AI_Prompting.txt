@@ -73,3 +73,16 @@ Prompt:
 
 ------
 Analyze the LoadRunner response time graph with an SLA of 2 seconds. Identify trends, spikes, and anomalies. Correlate response time with user load, flag any SLA breaches, and suggest likely bottlenecks. Provide clear, actionable recommendations for optimization.
+
+
+
+I would like to gather your feedback regarding our discussions on AI and Continuous Improvement (CI) topics. Please share your thoughts on the following:
+
+Do you feel I have involved you enough in contributing to AI-related topics?
+
+Do you think I have been transparent in sharing AI topics and requesting your involvement?
+
+Have I encouraged or suggested your active involvement in Continuous Improvement topics, either individually or as a team?
+
+
+Your honest feedback will help us improve how we collaborate and ensure everyone feels engaged in these initiatives.
