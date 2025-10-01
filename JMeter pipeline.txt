@@ -1,0 +1,360 @@
+# Simple JMeter Git Folder Structure
+
+```
+jmeter-tests/
+│
+├── .gitignore                     # Root gitignore file
+├── README.md                      # Project documentation
+│
+├── Dockerfile                     # JMeter container
+├── Jenkinsfile                    # CI/CD pipeline
+│
+├── certificates/                  # SSL/TLS certificates
+│   ├── .gitkeep
+│   └── README.md
+│
+├── testdata/                      # Test data files
+│   ├── .gitkeep
+│   └── README.md
+│
+├── scripts/                       # JMeter test scripts (.jmx files)
+│   ├── .gitkeep
+│   └── README.md
+│
+├── reports/                       # Generated HTML reports (gitignored)
+│   └── .gitignore
+│
+└── config/                        # Configuration files
+    ├── .gitkeep
+    └── README.md
+```
+
+## 📝 File Contents
+
+### 1. `.gitignore` (Root)
+```gitignore
+# Reports (generated files)
+reports/*
+!reports/.gitignore
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*~
+```
+
+### 2. `reports/.gitignore`
+```gitignore
+# Ignore all generated reports
+*
+
+# But keep this .gitignore file
+!.gitignore
+```
+
+### 3. `README.md` (Root)
+```markdown
+# JMeter Performance Tests
+
+## 📁 Folder Structure
+- `/certificates` - SSL/TLS certificates for HTTPS testing
+- `/testdata` - CSV, JSON, XML test data files
+- `/scripts` - JMeter test plans (.jmx files)
+- `/reports` - Generated HTML reports (gitignored)
+- `/config` - JMeter configuration files
+
+## 🚀 Quick Start
+
+### Run with Docker
+```bash
+docker build -t jmeter-runner .
+docker run --rm -v $(pwd)/reports:/tests/reports jmeter-runner
+```
+
+### Run in Jenkins
+Push to repository - Jenkins will automatically run tests via Jenkinsfile.
+```
+
+### 4. `certificates/README.md`
+```markdown
+# Certificates
+
+Place your SSL/TLS certificates here for HTTPS testing.
+
+## Files
+- `*.crt` - Certificate files
+- `*.key` - Private key files
+- `*.p12` - PKCS12 keystores
+- `*.jks` - Java keystores
+
+## Usage in JMeter
+Configure in Test Plan > SSL Manager or HTTP Request defaults.
+```
+
+### 5. `testdata/README.md`
+```markdown
+# Test Data
+
+Place your test data files here.
+
+## Supported Formats
+- CSV files (users.csv, data.csv)
+- JSON files (payloads.json)
+- XML files (requests.xml)
+- TXT files (tokens.txt)
+
+## Example CSV Format
+```csv
+username,password
+user1,pass123
+user2,pass456
+```
+```
+
+### 6. `scripts/README.md`
+```markdown
+# JMeter Scripts
+
+Place your JMeter test plan files (.jmx) here.
+
+## Naming Convention
+- `load-test.jmx` - Load testing
+- `stress-test.jmx` - Stress testing
+- `api-test.jmx` - API testing
+- `smoke-test.jmx` - Smoke testing
+```
+
+### 7. `config/README.md`
+```markdown
+# Configuration Files
+
+Place JMeter configuration files here.
+
+## Files
+- `jmeter.properties` - JMeter properties
+- `user.properties` - Custom properties
+- `test.properties` - Test configuration
+```
+
+### 8. `Dockerfile`
+```dockerfile
+# JMeter Docker Container
+FROM alpine:3.18
+
+ENV JMETER_VERSION=5.6.3
+ENV JMETER_HOME=/opt/apache-jmeter-${JMETER_VERSION}
+ENV PATH="${JMETER_HOME}/bin:${PATH}"
+
+# Install dependencies
+RUN apk add --no-cache \
+    openjdk11-jre \
+    wget \
+    curl \
+    bash
+
+# Download and install JMeter
+RUN wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz && \
+    tar -xzf apache-jmeter-${JMETER_VERSION}.tgz -C /opt/ && \
+    rm apache-jmeter-${JMETER_VERSION}.tgz
+
+WORKDIR /tests
+
+# Copy test files
+COPY certificates/ ./certificates/
+COPY testdata/ ./testdata/
+COPY scripts/ ./scripts/
+COPY config/ ./config/
+
+# Create reports directory
+RUN mkdir -p reports
+
+ENTRYPOINT ["jmeter"]
+CMD ["-n", "-t", "scripts/test-plan.jmx", "-l", "reports/results.jtl", "-e", "-o", "reports"]
+```
+
+### 9. `Jenkinsfile`
+```groovy
+pipeline {
+    agent any
+    
+    environment {
+        IMAGE_NAME = 'jmeter-tests'
+        REPORT_DIR = 'reports'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Build JMeter Image') {
+            steps {
+                script {
+                    sh "docker build -t ${IMAGE_NAME} ."
+                }
+            }
+        }
+        
+        stage('Run JMeter Tests') {
+            steps {
+                script {
+                    sh """
+                        mkdir -p ${REPORT_DIR}
+                        docker run --rm \
+                            -v \$(pwd)/${REPORT_DIR}:/tests/reports \
+                            ${IMAGE_NAME} \
+                            -n -t scripts/test-plan.jmx \
+                            -l reports/results.jtl \
+                            -e -o reports \
+                            -j reports/jmeter.log
+                    """
+                }
+            }
+        }
+        
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: "${REPORT_DIR}",
+                    reportFiles: 'index.html',
+                    reportName: 'JMeter Performance Report',
+                    reportTitles: 'Performance Test Results'
+                ])
+            }
+        }
+        
+        stage('Archive Results') {
+            steps {
+                archiveArtifacts artifacts: "${REPORT_DIR}/**/*", 
+                                 allowEmptyArchive: false
+            }
+        }
+        
+        stage('Cleanup') {
+            steps {
+                script {
+                    sh "docker rmi ${IMAGE_NAME} || true"
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+```
+
+## 🚀 Quick Setup Commands
+
+```bash
+# Create all folders
+mkdir -p certificates testdata scripts reports config
+
+# Create .gitkeep files (to track empty folders)
+touch certificates/.gitkeep
+touch testdata/.gitkeep
+touch scripts/.gitkeep
+touch config/.gitkeep
+
+# Create reports/.gitignore
+cat > reports/.gitignore << 'EOF'
+*
+!.gitignore
+EOF
+
+# Create root .gitignore
+cat > .gitignore << 'EOF'
+reports/*
+!reports/.gitignore
+.env
+.vscode/
+.idea/
+.DS_Store
+*.log
+*.tmp
+EOF
+
+# Create README files
+cat > README.md << 'EOF'
+# JMeter Performance Tests
+Simple JMeter testing setup with Docker and Jenkins.
+EOF
+
+cat > certificates/README.md << 'EOF'
+# Certificates
+Place SSL/TLS certificates here.
+EOF
+
+cat > testdata/README.md << 'EOF'
+# Test Data
+Place CSV, JSON, XML test data files here.
+EOF
+
+cat > scripts/README.md << 'EOF'
+# JMeter Scripts
+Place .jmx test plan files here.
+EOF
+
+cat > config/README.md << 'EOF'
+# Configuration
+Place JMeter configuration files here.
+EOF
+
+# Add all to git
+git add .
+git commit -m "Initialize JMeter test structure"
+git push
+```
+
+## ✅ What Gets Committed vs Ignored
+
+### ✅ Committed to Git:
+- `certificates/` folder and files (*.crt, *.key)
+- `testdata/` folder and files (*.csv, *.json)
+- `scripts/` folder and files (*.jmx)
+- `config/` folder and files (*.properties)
+- `Dockerfile`
+- `Jenkinsfile`
+- `.gitignore` files
+- `README.md` files
+
+### ❌ Ignored (Not in Git):
+- `reports/*` - All generated HTML reports
+- `*.log` - Log files
+- `.env` - Environment variables
+- IDE files
+
+## 📦 Folder Purposes
+
+| Folder | Purpose | Files |
+|--------|---------|-------|
+| `certificates/` | SSL/TLS certs | .crt, .key, .p12, .jks |
+| `testdata/` | Test data | .csv, .json, .xml |
+| `scripts/` | Test plans | .jmx |
+| `reports/` | Generated reports | .html (gitignored) |
+| `config/` | Configuration | .properties |
+
+This is the **minimal, clean structure** you need! 🎯
