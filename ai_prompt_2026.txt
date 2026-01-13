@@ -2,7 +2,7 @@ LoadRunner Test Analysis and Performance Reporting
 Objective
 Analyze the provided LoadRunner response time results and parameter sheet to generate a comprehensive, interactive HTML performance summary report.
 Requirements
-1. SLA Compliance Table (Functionality Tree View with Expand/Collapse-All)
+1. SLA Compliance Table (Functionality Tree View with Column Filters)
 Create an SLA Compliance table displayed fully expanded by default, structured as a tree view grouped by Functionality.
 Hierarchy Structure:
 Level 1: Functionality
@@ -19,14 +19,15 @@ Average Response Time
 SLA Status (Under SLA / SLA Breached)
 Behavior & Rules:
 Default SLA target = 3 seconds, unless overridden in the parameter sheet.
-Functionality is used only as the parent node, not shown as a table column.
+Functionality is used only as the tree parent node, not shown as a data column.
 The table must:
 Load in a fully expanded state
 Provide Expand All / Collapse All controls
-Support searching and filtering across all fields
-SLA Status should be visually highlighted (e.g., green/red).
+Support global search
+Support individual column-level filtering for each column
+SLA Status must be visually highlighted (e.g., green for Under SLA, red for SLA Breached).
 2. Top 5 Slowest Transactions
-Identify the Top 5 slowest transactions based on 90th percentile response time.
+Identify the Top 5 slowest transactions based on 90th percentile response time, regardless of functionality.
 Include:
 Transaction Name
 Sub Transaction Name
@@ -43,7 +44,8 @@ Executive Summary
 SLA Compliance Table
 Functionality-based tree view
 Fully expanded by default
-Expand/Collapse All option
+Expand/Collapse All
+Per-column filters
 Top 5 Response Time Table
 Bar Chart (embedded using Chart.js or Base64)
 Observations and Recommendations
