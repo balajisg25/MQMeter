@@ -1,8 +1,8 @@
 LoadRunner Test Analysis and Performance Reporting
 Objective
-Analyze the provided LoadRunner response time results and parameter sheet to generate a modern, visually polished, and interactive HTML performance summary report suitable for executive and stakeholder review.
+Analyze the provided LoadRunner response time results and parameter sheet to generate a modern, light-themed, stylish, and interactive HTML performance summary report suitable for executive and stakeholder review.
 Requirements
-1. SLA Compliance Table (Stylish Tree View by Functionality)
+1. SLA Compliance Table (Functionality Tree View with Column Controls)
 Create an SLA Compliance table displayed fully expanded by default, structured as a tree view grouped by Functionality.
 Hierarchy Structure:
 Level 1: Functionality
@@ -12,7 +12,7 @@ Data Display Rules:
 Display performance values at the lowest available level
 Main transaction shows values if no sub-transactions exist
 Sub-transactions display values when present
-Functionality rows may remain non-metric parent nodes
+Functionality rows act as logical parent nodes (no mandatory metrics)
 Displayed Columns:
 Transaction Name
 Sub Transaction Name
@@ -24,13 +24,16 @@ Average Response Time
 SLA Status (Under SLA / SLA Breached)
 Behavior & Rules:
 Default SLA target = 3 seconds, unless overridden
-Functionality used as a tree parent, not as a visible column
-Table must:
+Functionality is used as a tree parent, not shown as a column
+The table must:
 Load fully expanded
-Provide Expand All / Collapse All controls
+Provide Expand All / Collapse All
 Support global search
 Support individual column-level filters
-SLA Status must be color-coded with badges or icons
+Provide a column show/hide selector so users can hide unwanted columns
+SLA Status must be color-coded (light theme):
+Green badge → Under SLA
+Red badge → SLA Breached
 2. Top 5 Slowest Transactions
 Identify the Top 5 slowest transactions based on 90th percentile response time.
 Include:
@@ -43,31 +46,34 @@ Create a clean, professional bar chart for the Top 5 slowest transactions:
 X-axis: Transaction / Sub Transaction Name
 Y-axis: Response Time (seconds)
 Metric: 90th Percentile Response Time
-Use modern colors, tooltips, and hover effects
-4. HTML Performance Report (UI & Styling Requirements)
-The HTML report must be:
-Responsive and modern
-Styled using CSS3 / Bootstrap / Tailwind or equivalent
-Visually consistent with corporate dashboards
-Mandatory Styling Elements:
-Clean typography and spacing
-Section cards with subtle shadows
+Use soft, light-theme colors with tooltips and hover effects
+4. HTML Performance Report (Light Theme & UX Requirements)
+The HTML report must:
+Use a light color theme only (no dark mode)
+Be responsive and modern
+Use CSS3 / Bootstrap / Tailwind or equivalent
+Mandatory UI/UX Styling:
+White / light gray background
+Soft accent colors (blue/green/red)
+Clean typography
+Card-based sections with subtle shadows
 Sticky table headers
 Zebra-striped rows
-Hover highlights for rows
-SLA status shown as colored pills or badges
+Row hover highlighting
 Expand/Collapse icons for tree nodes
-Smooth transitions/animations (optional)
+Column chooser / visibility toggle
+Smooth but minimal animations
 5. Report Sections
-Executive Summary (high-level insights with highlights)
+Executive Summary
 SLA Compliance Table
 Functionality-based tree view
 Fully expanded by default
 Expand/Collapse All
 Per-column filters
+Column show/hide option
 Top 5 Response Time Table
-Performance Bar Chart (embedded via Chart.js or Base64)
+Performance Bar Chart
 Observations & Recommendations
 Deliverable
-A single, self-contained, visually polished HTML file
-Ready for client presentation and executive review
+A single, self-contained, light-themed HTML report
+Optimized for presentation, sharing, and client review
