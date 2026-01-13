@@ -2,10 +2,15 @@ LoadRunner Test Analysis and Performance Reporting
 Objective
 Analyze the provided LoadRunner response time results and parameter sheet to generate a comprehensive, interactive HTML performance summary report.
 Requirements
-1. SLA Compliance Table
-Create an SLA Compliance table with the following columns only:
-Transaction Name (populate only if Transaction Type = Main)
-Sub Transaction Name (populate if Transaction Type ≠ Main)
+1. SLA Compliance Table (Tree View by Functionality)
+Create an SLA Compliance table structured as a tree view grouped by Functionality.
+Hierarchy:
+Level 1: Functionality
+Level 2: Transaction Name (if Transaction Type = Main)
+Level 3: Sub Transaction Name (if Transaction Type ≠ Main)
+Displayed Columns (Leaf Level Only):
+Transaction Name (Main transactions only)
+Sub Transaction Name (Sub transactions only)
 URL
 Minimum Response Time
 Maximum Response Time
@@ -14,10 +19,10 @@ Average Response Time
 SLA Status (Under SLA / SLA Breached)
 Rules:
 Default SLA target = 3 seconds, unless explicitly overridden in the parameter sheet.
-Transactions should be grouped by functionality internally, but Functionality must not be displayed in the table.
-The table must be searchable and filterable across all columns in the HTML report.
+Functionality is used as the tree parent node, not as a visible data column.
+The tree view must be expandable/collapsible and searchable/filterable across all fields in the HTML report.
 2. Top 5 Slowest Transactions
-Identify the Top 5 slowest transactions based on 90th percentile response time.
+Identify the Top 5 slowest transactions based on 90th percentile response time, regardless of functionality grouping.
 Include:
 Transaction Name
 Sub Transaction Name
@@ -31,7 +36,7 @@ Metric: 90th Percentile Response Time
 4. HTML Performance Report
 The final HTML report must include the following sections:
 Executive Summary
-SLA Compliance Table (searchable & filterable)
+SLA Compliance Tree View (Functionality-based, expandable)
 Top 5 Response Time Table
 Bar Chart (embedded using Chart.js or Base64)
 Observations and Recommendations
