@@ -2,27 +2,31 @@ LoadRunner Test Analysis and Performance Reporting
 Objective
 Analyze the provided LoadRunner response time results and parameter sheet to generate a comprehensive, interactive HTML performance summary report.
 Requirements
-1. SLA Compliance Table (Tree View by Functionality)
-Create an SLA Compliance table structured as a tree view grouped by Functionality.
-Hierarchy:
+1. SLA Compliance Table (Functionality Tree View with Expand/Collapse-All)
+Create an SLA Compliance table displayed fully expanded by default, structured as a tree view grouped by Functionality.
+Hierarchy Structure:
 Level 1: Functionality
 Level 2: Transaction Name (if Transaction Type = Main)
 Level 3: Sub Transaction Name (if Transaction Type ≠ Main)
-Displayed Columns (Leaf Level Only):
-Transaction Name (Main transactions only)
-Sub Transaction Name (Sub transactions only)
+Displayed Columns (Leaf Nodes):
+Transaction Name (Main only)
+Sub Transaction Name (Sub only)
 URL
 Minimum Response Time
 Maximum Response Time
 Average Response Time
 90th Percentile Response Time
 SLA Status (Under SLA / SLA Breached)
-Rules:
-Default SLA target = 3 seconds, unless explicitly overridden in the parameter sheet.
-Functionality is used as the tree parent node, not as a visible data column.
-The tree view must be expandable/collapsible and searchable/filterable across all fields in the HTML report.
+Behavior & Rules:
+Default SLA target = 3 seconds, unless overridden in the parameter sheet.
+Functionality is used only as the parent node, not shown as a table column.
+The table must:
+Load in a fully expanded state
+Provide Expand All / Collapse All controls
+Support searching and filtering across all fields
+SLA Status should be visually highlighted (e.g., green/red).
 2. Top 5 Slowest Transactions
-Identify the Top 5 slowest transactions based on 90th percentile response time, regardless of functionality grouping.
+Identify the Top 5 slowest transactions based on 90th percentile response time.
 Include:
 Transaction Name
 Sub Transaction Name
@@ -30,13 +34,16 @@ Sub Transaction Name
 SLA Status
 3. Performance Graph
 Generate a bar chart for the Top 5 slowest transactions:
-X-axis: Transaction Name (or Sub Transaction Name, where applicable)
+X-axis: Transaction Name (or Sub Transaction Name where applicable)
 Y-axis: Response Time (seconds)
 Metric: 90th Percentile Response Time
 4. HTML Performance Report
 The final HTML report must include the following sections:
 Executive Summary
-SLA Compliance Tree View (Functionality-based, expandable)
+SLA Compliance Table
+Functionality-based tree view
+Fully expanded by default
+Expand/Collapse All option
 Top 5 Response Time Table
 Bar Chart (embedded using Chart.js or Base64)
 Observations and Recommendations
