@@ -1,16 +1,21 @@
 LoadRunner Test Analysis and Performance Reporting
 Objective
-Analyze the provided LoadRunner response time results and parameter sheet to generate a comprehensive, interactive HTML performance summary report.
+Analyze the provided LoadRunner response time results and parameter sheet to generate a modern, visually polished, and interactive HTML performance summary report suitable for executive and stakeholder review.
 Requirements
-1. SLA Compliance Table (Functionality Tree View with Column Filters)
+1. SLA Compliance Table (Stylish Tree View by Functionality)
 Create an SLA Compliance table displayed fully expanded by default, structured as a tree view grouped by Functionality.
 Hierarchy Structure:
 Level 1: Functionality
-Level 2: Transaction Name (if Transaction Type = Main)
-Level 3: Sub Transaction Name (if Transaction Type ≠ Main)
-Displayed Columns (Leaf Nodes):
-Transaction Name (Main only)
-Sub Transaction Name (Sub only)
+Level 2: Transaction Name (Main)
+Level 3: Sub Transaction Name (Child)
+Data Display Rules:
+Display performance values at the lowest available level
+Main transaction shows values if no sub-transactions exist
+Sub-transactions display values when present
+Functionality rows may remain non-metric parent nodes
+Displayed Columns:
+Transaction Name
+Sub Transaction Name
 URL
 Minimum Response Time
 Maximum Response Time
@@ -18,36 +23,51 @@ Average Response Time
 90th Percentile Response Time
 SLA Status (Under SLA / SLA Breached)
 Behavior & Rules:
-Default SLA target = 3 seconds, unless overridden in the parameter sheet.
-Functionality is used only as the tree parent node, not shown as a data column.
-The table must:
-Load in a fully expanded state
+Default SLA target = 3 seconds, unless overridden
+Functionality used as a tree parent, not as a visible column
+Table must:
+Load fully expanded
 Provide Expand All / Collapse All controls
 Support global search
-Support individual column-level filtering for each column
-SLA Status must be visually highlighted (e.g., green for Under SLA, red for SLA Breached).
+Support individual column-level filters
+SLA Status must be color-coded with badges or icons
 2. Top 5 Slowest Transactions
-Identify the Top 5 slowest transactions based on 90th percentile response time, regardless of functionality.
+Identify the Top 5 slowest transactions based on 90th percentile response time.
 Include:
 Transaction Name
 Sub Transaction Name
 90th Percentile Response Time
-SLA Status
+SLA Status (color-coded)
 3. Performance Graph
-Generate a bar chart for the Top 5 slowest transactions:
-X-axis: Transaction Name (or Sub Transaction Name where applicable)
+Create a clean, professional bar chart for the Top 5 slowest transactions:
+X-axis: Transaction / Sub Transaction Name
 Y-axis: Response Time (seconds)
 Metric: 90th Percentile Response Time
-4. HTML Performance Report
-The final HTML report must include the following sections:
-Executive Summary
+Use modern colors, tooltips, and hover effects
+4. HTML Performance Report (UI & Styling Requirements)
+The HTML report must be:
+Responsive and modern
+Styled using CSS3 / Bootstrap / Tailwind or equivalent
+Visually consistent with corporate dashboards
+Mandatory Styling Elements:
+Clean typography and spacing
+Section cards with subtle shadows
+Sticky table headers
+Zebra-striped rows
+Hover highlights for rows
+SLA status shown as colored pills or badges
+Expand/Collapse icons for tree nodes
+Smooth transitions/animations (optional)
+5. Report Sections
+Executive Summary (high-level insights with highlights)
 SLA Compliance Table
 Functionality-based tree view
 Fully expanded by default
 Expand/Collapse All
 Per-column filters
 Top 5 Response Time Table
-Bar Chart (embedded using Chart.js or Base64)
-Observations and Recommendations
+Performance Bar Chart (embedded via Chart.js or Base64)
+Observations & Recommendations
 Deliverable
-A single, self-contained HTML report suitable for sharing with stakeholders.
+A single, self-contained, visually polished HTML file
+Ready for client presentation and executive review
