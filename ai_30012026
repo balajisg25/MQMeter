@@ -1,0 +1,79 @@
+Generate a fully self-contained, light-themed, interactive HTML performance report for LoadRunner test results with multiple releases. The report should consolidate data per release and include SLA compliance, top slow transactions, and graphs. 
+
+Requirements:
+
+1. **Homepage / Executive Summary**
+- Show a high-level summary of all releases (M1, M2, M3, etc.)
+- Include total number of transactions, average response time, SLA compliance summary
+- Provide navigation to each release section
+
+2. **Per Release Sections**
+For each release (M1, M2, M3, ...):
+
+a) **SLA Compliance Table**
+- Tree view grouped by Functionality > Transaction > Sub-Transaction
+- Columns:
+  - Transaction Name
+  - Sub Transaction Name
+  - URL
+  - Minimum Response Time
+  - Maximum Response Time
+  - Average Response Time
+  - 90th Percentile Response Time
+  - SLA Status (Under SLA / SLA Breached)
+- SLA target = 3 seconds (default)
+- Behavior:
+  - Functionality acts as parent, not shown as column
+  - Load fully expanded by default
+  - Expand/Collapse All buttons
+  - Global search
+  - Per-column filters
+  - Column show/hide selector
+- SLA Status color-coded:
+  - Green → Under SLA
+  - Red → SLA Breached
+
+b) **Top 5 Slowest Transactions Table**
+- Columns:
+  - Transaction Name
+  - Sub Transaction Name
+  - 90th Percentile Response Time
+  - SLA Status (color-coded)
+- Sort by 90th percentile response time descending
+
+c) **Performance Graph**
+- Bar chart for Top 5 slowest transactions
+- X-axis: Transaction/Sub Transaction Name
+- Y-axis: 90th Percentile Response Time (seconds)
+- Soft, light-theme colors
+- Tooltips and hover effects
+- Smooth animations
+
+3. **Observations & Recommendations**
+- Section with summary observations
+- Recommendations based on SLA breaches or slowest transactions
+
+4. **UI/UX & Styling Requirements**
+- Light theme only (white/light gray background)
+- Soft accent colors (blue/green/red)
+- Card-based sections with subtle shadows
+- Clean typography
+- Sticky table headers
+- Zebra-striped rows
+- Row hover highlighting
+- Expand/Collapse icons for tree nodes
+- Column chooser / visibility toggle
+- Smooth but minimal animations
+- Responsive design
+
+5. **Deliverable**
+- Single self-contained HTML file
+- Includes CSS and JS (Bootstrap/Tailwind or equivalent)
+- Fully interactive tables and charts
+- Optimized for presentation and client review
+
+**Additional Instructions:**
+- Include all releases (M1, M2, M3, …) in one report
+- Each release should have its own SLA table and graph
+- Homepage should provide consolidated overview and quick navigation
+- Use placeholder sample data for demonstration (can be replaced later)
