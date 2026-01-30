@@ -1,0 +1,89 @@
+Generate a single, fully self-contained, interactive, light-themed HTML performance report from a LoadRunner Excel file uploaded in Copilot (Microsoft 365).
+Excel Sheet Processing
+Automatically detect all worksheets matching:
+Release M* - Response Time
+Release M* - Graph
+Do not hardcode any release names.
+Iterate over every matching Release M* - Response Time sheet.
+For each detected release (M1, M2, M3, and so on):
+Create a dedicated section in the HTML.
+Associate and read the matching Release M* - Graph sheet.
+All detected releases must be rendered in the report.
+Do not display only the latest or a single release.
+Layout and Styling
+Full-page width using 100% browser width.
+No left or right white space.
+Light theme only:
+White or light-gray background.
+Soft blue, green, and red accent colors.
+Card-based layout with subtle shadows.
+Responsive design.
+Sticky table headers.
+Zebra-striped rows.
+Row hover highlighting.
+Homepage / Executive Summary
+Display a consolidated summary of all releases.
+For each release, show:
+Total number of transactions.
+Average response time.
+SLA status summary (based on data).
+Provide navigation links to each release section.
+Per-Release Section (Repeat for Every Release)
+1. SLA Compliance Table
+Tree-view grouping:
+Functionality → Transaction → Sub-Transaction.
+Functionality is used only as a grouping level and is not shown as a column.
+Table loads fully expanded by default.
+Columns:
+Transaction Name
+Sub-Transaction Name
+URL
+Minimum Response Time
+Maximum Response Time
+Average Response Time
+90th Percentile Response Time
+SLA Status
+Table Features:
+Expand and collapse all controls.
+Global search.
+Per-column filtering.
+Column show or hide selector.
+Sticky headers.
+SLA Status Styling:
+Green for Under SLA.
+Red for SLA Breached.
+No SLA threshold configuration or user input.
+2. Top 5 Slowest Transactions
+Derived per release.
+Sorted by 90th percentile response time in descending order.
+Columns:
+Transaction Name
+Sub-Transaction Name
+90th Percentile Response Time
+SLA Status
+3. Top-5 90th Percentile Performance Graph
+Bar chart showing the top five slowest transactions.
+X-axis: Transaction or Sub-Transaction name.
+Y-axis: 90th percentile response time in seconds.
+Soft colors, hover tooltips, and smooth animations.
+4. Release Graph Sheet Content
+Immediately below the Top-5 performance graph, display all content from the corresponding:
+Release M* - Graph sheet.
+Render text, tables, images, and graphs exactly as provided.
+Content must appear under its respective release section.
+Observations and Recommendations
+Displayed per release.
+Summarize SLA breaches and slow transactions.
+Provide clear and client-friendly recommendations.
+Deliverable
+Single, self-contained HTML file.
+Embedded or CDN-based CSS and JavaScript.
+Fully interactive tables and charts.
+Automatically adapts when new releases (M3, M4, and so on) are added.
+Constraints
+No Python or backend scripting.
+No HTML file upload controls.
+No hardcoded release names.
+No SLA threshold option.
+All detected releases must be displayed.
+Graph sheet content must appear under the correct release.
