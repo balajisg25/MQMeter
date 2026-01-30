@@ -1,0 +1,56 @@
+Create a fully self-contained, interactive, light-themed HTML performance report that consolidates LoadRunner test results from an Excel file. The report should support multiple releases and include SLA compliance, top slow transactions, and performance graphs.
+Requirements:
+Input Excel File Handling
+The Excel file contains multiple sheets:
+Release response time sheets: Release M1 - Response Time, Release M2 - Response Time, …, with future releases following the regex pattern Release M.* - Response Time.
+Release graph sheets: Release M1 - Graph, Release M2 - Graph, …, with future releases following the regex pattern Release M.* - Graph.
+Each release may have corresponding graph data and descriptive text to include in the report.
+The script should automatically detect all sheets matching the above patterns.
+Homepage / Executive Summary
+Display a high-level summary of all releases (M1, M2, M3, …) with:
+Total transactions
+Average response time
+SLA compliance summary
+Provide quick navigation links to each release section.
+Per Release Sections
+For each release:
+a) SLA Compliance Table
+Tree-view grouped by Functionality > Transaction > Sub-Transaction
+Columns:
+Transaction Name, Sub Transaction Name, URL
+Minimum Response Time, Maximum Response Time, Average Response Time, 90th Percentile Response Time
+SLA Status (Under SLA / SLA Breached) – SLA = 3 seconds (default)
+Features:
+Expand/Collapse all buttons
+Fully expanded by default
+Global search, per-column filters, column visibility toggle
+Color-coded SLA Status: Green → Under SLA, Red → Breached
+b) Top 5 Slowest Transactions Table
+Columns: Transaction Name, Sub Transaction Name, 90th Percentile Response Time, SLA Status
+Sort descending by 90th percentile response time
+Color-coded SLA Status
+c) Performance Graph
+Bar chart for top 5 slowest transactions
+X-axis: Transaction/Sub Transaction Name, Y-axis: 90th percentile response time
+Soft, light-theme colors, hover tooltips, smooth animations
+Include release-specific graph images or generated charts from the Excel data
+Observations & Recommendations
+Section summarizing observations and recommendations
+Recommendations based on SLA breaches or slow transactions
+UI/UX & Styling
+Light theme: white/light gray background, soft accent colors (blue/green/red)
+Card-based layout with subtle shadows
+Sticky table headers, zebra-striped rows, hover highlighting
+Expand/Collapse icons for tree nodes
+Column chooser / visibility toggle
+Smooth but minimal animations
+Responsive design
+Deliverable
+Single self-contained HTML file with embedded CSS and JS (Bootstrap, Tailwind, or equivalent)
+Fully interactive tables and charts
+Placeholder sample data for demonstration (later replaceable by Excel data)
+Each release section dynamically populated based on Excel sheets
+Automation / Extensibility
+Automatically detect all existing and future release sheets using regex: Release M.* - Response Time and Release M.* - Graph
+Load the corresponding response time data and graphs for each release
+Support adding future releases without changing the code
