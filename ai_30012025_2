@@ -1,0 +1,48 @@
+Generate a fully self-contained, interactive, light-themed HTML performance report that reads a LoadRunner test results Excel file uploaded in Copilot / M365.
+Requirements:
+1. File Handling
+The Excel file will be uploaded in M365 Copilot (via OneDrive or local upload).
+Detect all sheets automatically:
+Response time sheets: Release M1 - Response Time, Release M2 - Response Time, … (future releases follow regex Release M.* - Response Time)
+Graph sheets: Release M1 - Graph, Release M2 - Graph, … (future releases follow regex Release M.* - Graph)
+Extract response time data and graph data per release for report generation.
+2. Report Layout
+Full-page layout: the HTML should use 100% browser width, no left/right whitespace.
+Light theme: white/light gray background, soft accent colors (blue/green/red).
+Card-based sections with subtle shadows.
+Sticky table headers, zebra-striped rows, row hover highlighting.
+Responsive design, smooth minimal animations.
+3. Homepage / Executive Summary
+High-level summary of all releases (M1, M2, M3, …):
+Total transactions
+Average response time
+SLA compliance summary
+Quick navigation links to each release section.
+4. Per Release Sections
+a) SLA Compliance Table
+Tree view grouped by Functionality > Transaction > Sub-Transaction
+Columns: Transaction Name, Sub Transaction Name, URL, Min/Max/Avg/90th Percentile Response Time, SLA Status (SLA = 3s default)
+SLA Status color-coded: Green = Under SLA, Red = Breached
+Expand/Collapse all buttons, fully expanded by default
+Global search, per-column filters, column visibility toggle
+b) Top 5 Slowest Transactions Table
+Sorted by 90th percentile response time descending
+Color-coded SLA Status
+c) Performance Graph
+Bar chart for top 5 slowest transactions per release
+X-axis: Transaction/Sub Transaction Name, Y-axis: 90th percentile response time
+Soft colors, tooltips, hover effects, smooth animations
+Include release-specific graph images or charts from Excel sheets
+5. Observations & Recommendations
+Section summarizing observations
+Recommendations based on SLA breaches or slowest transactions
+6. Deliverable
+Single self-contained HTML file
+Full-width layout (no side whitespace)
+Embedded CSS/JS (Bootstrap, Tailwind, or equivalent)
+Interactive tables and charts
+Dynamic sections for all existing and future releases detected in Excel
+7. Automation / Extensibility
+Automatically detect all release sheets (Release M.* - Response Time and Release M.* - Graph)
+Populate tables and graphs per release automatically
+Support future releases without manual changes
