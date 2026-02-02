@@ -1,0 +1,88 @@
+Task
+Generate a single, fully self-contained, interactive, light-themed HTML performance report by reading and correlating data from the uploaded LoadRunner Excel file in Copilot (Microsoft 365).
+All numeric values must come directly from Excel.
+SLA Status must be derived inside HTML logic using 3 seconds as the threshold.
+Functionality, Sub-Transaction, and URL must be sourced from the Param sheet via Transaction Name.
+Excel Sheet Detection and Parsing
+Detect all worksheets matching:
+Release M* - Response Time
+Release M* - Graph
+Detect and parse Param sheet
+Columns (exact headers):
+Transaction Name (Primary Key)
+Functionality
+Sub-Transaction Name
+URL
+Data Correlation
+For every row in Release M* - Response Time:
+Use Transaction Name as join key
+Lookup matching Param sheet row
+Populate:
+Functionality
+Sub-Transaction Name
+URL
+If no match, leave blank
+SLA Status Derivation
+Add SLA Status column dynamically in HTML
+Rule:
+Under SLA → 90th Percentile Response Time ≤ 3 seconds
+SLA Breached → 90th Percentile Response Time > 3 seconds
+Apply consistently across:
+SLA Compliance Table
+Top 5 Slowest Transactions
+Executive Summary
+No SLA thresholds or user input
+HTML Layout
+Full browser width
+Light theme: white/light-gray background
+Soft blue, green, red accents
+Card-based layout, subtle shadows
+Responsive, sticky headers, zebra stripes, hover highlighting
+Homepage / Executive Summary
+For each release:
+Total transactions
+Average response time
+SLA summary (Under SLA / SLA Breached, based on 3s threshold)
+Include navigation links to each release section.
+Per-Release Section
+1. SLA Compliance Table
+Data: Release M* - Response Time + Param sheet
+Tree view grouping: Functionality → Transaction → Sub-Transaction
+Columns:
+Transaction Name
+Sub-Transaction Name (from Param)
+URL (from Param)
+Minimum Response Time
+Maximum Response Time
+Average Response Time
+90th Percentile Response Time
+SLA Status (derived using ≤3s)
+Table features: Expand/collapse all, global search, per-column filter, show/hide columns, sticky headers
+SLA Status styling: Green = Under SLA, Red = SLA Breached
+2. Top 5 Slowest Transactions
+Sorted by 90th Percentile Response Time (descending)
+Columns: Transaction Name, Sub-Transaction Name, 90th Percentile Response Time, SLA Status
+3. Top-5 90th Percentile Performance Graph
+Bar chart of Top-5 slowest transactions
+X-axis: Transaction/Sub-Transaction
+Y-axis: 90th Percentile Response Time
+Light colors, hover tooltips, smooth animations
+4. Release Graph Sheet Content
+Render all content from matching Release M* - Graph sheet (text, tables, images, charts) exactly
+5. Observations & Recommendations
+Highlight SLA breaches (>3s)
+Highlight slow transactions
+Provide clear, client-friendly recommendations
+Deliverable
+Single self-contained HTML file
+Embedded/CDN CSS & JS
+Interactive tables & charts
+Fully automatic for all detected releases
+Constraints
+No Python/backend scripting
+No HTML upload controls
+No hardcoded release names
+Param sheet must be used for metadata
+SLA Status must be derived (≤3s = Under SLA)
+All detected releases must be rendered
+Report missing or unparseable sheets explicitly
