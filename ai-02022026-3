@@ -1,0 +1,63 @@
+Task:
+Generate a single, fully self-contained, interactive, light-themed HTML performance report by reading all data from the uploaded LoadRunner Excel file in Copilot (Microsoft 365).
+Requirements for Excel data handling:
+Automatically detect all sheets matching:
+Release M* - Response Time
+Release M* - Graph
+Param sheet contains metadata:
+Columns: Transaction Name, Functionality, Sub-Transaction Name, URL
+Use Transaction Name as primary key to enrich Release sheets.
+Critical:
+Trim all Transaction Name strings and normalize case before joining Param sheet.
+Convert all numeric columns (Min/Max/Avg/90th) to numbers before applying logic.
+If no match in Param sheet → leave Functionality, Sub-Transaction, URL blank.
+SLA Status
+Compute dynamically in HTML:
+Under SLA → 90th Percentile Response Time ≤ 3 seconds
+SLA Breached → 90th Percentile Response Time > 3 seconds
+Apply SLA Status to: SLA table, Top 5 Slowest Transactions, Executive Summary
+Style: Green = Under SLA, Red = SLA Breached
+HTML Layout
+Full browser width
+Light theme: white/light-gray background, soft blue/green/red accents
+Card-based layout, subtle shadows, responsive design
+Tables: sticky headers, zebra stripes, row hover highlight
+Homepage / Executive Summary
+Total transactions per release
+Average response time per release
+SLA summary counts (Under SLA / Breached)
+Navigation links to each release
+Per-Release Section
+SLA Compliance Table
+Data: Release M* - Response Time enriched with Param sheet
+Columns: Transaction Name, Sub-Transaction Name, URL, Min, Max, Avg, 90th, SLA Status
+Tree view: Functionality → Transaction → Sub-Transaction (Functionality grouping only, not a column)
+Table features: Expand/collapse all, search, per-column filter, show/hide columns, sticky headers
+Top 5 Slowest Transactions
+Derived from SLA table
+Sorted by 90th Percentile Response Time descending
+Columns: Transaction Name, Sub-Transaction Name, 90th, SLA Status
+Top 5 90th Percentile Performance Graph
+Bar chart of top 5 slowest transactions
+X-axis: Transaction/Sub-Transaction
+Y-axis: 90th Percentile Response Time (seconds)
+Hover tooltips, smooth animations
+Release Graph Sheet Content
+Render all content from Release M* - Graph sheet exactly as in Excel (text, tables, images, charts)
+Observations & Recommendations
+Highlight SLA breaches (>3s)
+Highlight slow transactions
+Provide clear client-friendly recommendations
+Debugging / Safety
+Include a hidden debug section showing:
+Number of rows parsed from Response Time sheet
+Number of rows matched with Param sheet
+Sample of numeric columns (Min/Max/Avg/90th)
+This ensures data is loaded correctly and helps fix empty tables.
+Deliverable
+Single self-contained HTML file
+Embedded or CDN-based CSS/JS
+Fully interactive tables and charts
+Works automatically with any number of releases (M1, M2, …)
+All values must come directly from Excel or derived dynamically
+No fabricated data, no backend scripts, no HTML upload controls
