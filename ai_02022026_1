@@ -1,0 +1,106 @@
+Task
+Generate a single, fully self-contained, interactive, light-themed HTML performance report by programmatically reading all data from the uploaded LoadRunner Excel file in Copilot (Microsoft 365).
+All values displayed in the HTML must be read directly from the Excel sheets. Do not fabricate, approximate, summarize, or infer numeric values. If a cell exists in Excel, its exact value must be rendered in the HTML.
+Excel Sheet Detection and Parsing (Critical)
+Automatically detect all worksheets whose names match exactly:
+Release M* - Response Time
+Release M* - Graph
+Do not hardcode release names or assume a fixed number of releases.
+Extract the release identifier dynamically (M1, M2, M3, …) from the sheet name.
+Iterate through every detected Release M* - Response Time sheet.
+For each Response Time sheet:
+Locate and parse all populated rows and columns.
+Preserve numeric precision (do not round unless Excel already does).
+Treat empty cells as empty (do not replace with 0 or N/A unless Excel explicitly contains those values).
+For each release, associate and load the matching Release M* - Graph sheet.
+All detected releases must be rendered. Do not limit output to the latest or a single release.
+HTML Layout and Styling
+Full-width layout (100% browser width)
+No left or right white margins
+Light theme only:
+White or light-gray background
+Soft blue, green, and red accent colors
+Card-based layout with subtle shadows
+Responsive design for desktop and laptop screens
+Sticky table headers
+Zebra-striped rows
+Row hover highlighting
+Homepage / Executive Summary (All Releases)
+Build this section only from parsed Excel data.
+For each release, calculate and display:
+Total number of transactions (count of parsed rows)
+Average response time (mean of Average Response Time column)
+SLA status summary (count of Under SLA vs Breached)
+Include navigation links that scroll to each release section.
+Per-Release Section (Repeat for Every Release)
+1. SLA Compliance Table
+Data Source: Release M* - Response Time sheet
+Tree View Grouping (derived from Excel columns):
+Functionality → Transaction → Sub-Transaction
+Functionality is used only for grouping and must NOT appear as a visible column.
+Table State:
+Fully expanded by default
+Columns (mapped exactly from Excel headers):
+Transaction Name
+Sub-Transaction Name
+URL
+Minimum Response Time
+Maximum Response Time
+Average Response Time
+90th Percentile Response Time
+SLA Status
+Table Features:
+Expand / collapse all
+Global search across all columns
+Per-column filtering
+Column show / hide selector
+Sticky headers
+SLA Status Styling:
+Green = Under SLA
+Red = SLA Breached
+Use the SLA Status value exactly as present in Excel
+Do not introduce SLA thresholds or user configuration
+2. Top 5 Slowest Transactions
+Derived strictly from parsed Excel data
+Sort all rows by 90th Percentile Response Time (descending)
+Select the top 5
+Columns:
+Transaction Name
+Sub-Transaction Name
+90th Percentile Response Time
+SLA Status
+3. Top-5 90th Percentile Performance Graph
+Bar chart using the same Top-5 dataset
+X-axis: Transaction or Sub-Transaction name (from Excel)
+Y-axis: 90th Percentile Response Time (seconds)
+Light theme colors
+Hover tooltips showing exact values
+Smooth animations
+4. Release Graph Sheet Content (Mandatory)
+Immediately below the Top-5 chart, render all content from the matching Release M* - Graph sheet:
+Text
+Tables
+Images
+Charts
+Render content exactly as it appears in Excel.
+Do not summarize, reinterpret, or relocate this content.
+It must appear under its corresponding release section only.
+5. Observations and Recommendations
+Generate this section based only on parsed data:
+Identify SLA breaches
+Highlight consistently slow transactions
+Provide clear, client-friendly recommendations
+Deliverable
+Single, self-contained HTML file
+Embedded or CDN-based CSS and JavaScript
+Fully interactive tables and charts
+Automatically adapts when new releases (M3, M4, etc.) are added
+Constraints (Strict)
+No Python or backend scripting
+No HTML file upload controls
+No hardcoded release names
+No SLA threshold configuration
+All detected releases must be displayed
+All numeric and text values must come directly from Excel
+Graph sheet content must appear under the correct release
+If any Excel data cannot be read, explicitly state which sheet, row, or column failed instead of skipping it.
