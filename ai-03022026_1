@@ -1,0 +1,141 @@
+Task
+Generate a single, fully self-contained, interactive, light-themed HTML performance report by accurately reading and rendering data from the uploaded LoadRunner Excel file in Copilot (Microsoft 365).
+The HTML must follow the same logical order and structure as the provided Excel sample.
+Sheet Detection (No Hardcoding)
+Automatically detect and parse:
+consolidated sheet
+param sheet
+All sheets matching:
+Release M* - Response Time
+Release M* - Graph
+Do not hardcode release names. Detect all available releases dynamically (M1, M2, M3, …).
+Data Sources & Mapping Rules
+1. Consolidated Sheet (Primary Summary – MUST BE FIRST)
+Treat the consolidated sheet as the homepage summary table
+Read and render the consolidated table exactly as it appears in Excel
+Preserve:
+Row order
+Column order
+Cell values
+NA / blank values
+Do not recalculate or alter consolidated values
+2. Param Sheet (Metadata Join)
+Use the param sheet to enrich transaction data.
+Columns:
+Transaction Name (Primary Key)
+Functionality
+Sub-Transaction Name
+URL
+Join Rules (Critical):
+Join using Transaction Name
+Trim whitespace and normalize case before matching
+If no match is found, leave fields blank
+Do not infer or fabricate metadata
+3. Release M* – Response Time Sheets
+For each detected Release M* - Response Time sheet:
+Parse all populated rows
+Convert numeric columns to numbers:
+Minimum
+Average
+Maximum
+90th Percentile
+Ignore Pass / Fail / Stop columns for SLA logic
+SLA Status (Derived in HTML)
+SLA Status must NOT be read from Excel
+Add SLA Status dynamically
+Rule:
+Under SLA → 90th Percentile ≤ 3 seconds
+SLA Breached → 90th Percentile > 3 seconds
+Apply SLA consistently to:
+Tables
+Charts
+Observations
+HTML Report Structure (Strict Order)
+1️⃣ Consolidated Section (FIRST)
+Display the entire consolidated sheet table
+Full-width table
+Sticky headers
+Zebra striping
+Row hover highlighting
+2️⃣ Consolidated Bar Chart (Immediately After Table)
+Create a bar chart based on the consolidated table
+X-axis: Functionalities / Transactions (as per consolidated sheet)
+Y-axis: Response Time values
+Color code bars:
+Green ≤ 3s
+Red > 3s
+Hover tooltips showing exact values
+3️⃣ Per-Release Detailed Reports (After Consolidated)
+Repeat the following for every detected release (M1, M2, …):
+Per-Release Section – Release M*
+A. SLA Compliance Table
+Data Source:
+Release M* - Response Time + param sheet
+Tree Grouping:
+Functionality → Transaction → Sub-Transaction
+Functionality used only for grouping (not a visible column)
+Columns:
+Transaction Name
+Sub-Transaction Name
+URL
+Minimum Response Time
+Maximum Response Time
+Average Response Time
+90th Percentile Response Time
+SLA Status
+Features:
+Fully expanded by default
+Expand / collapse all
+Global search
+Per-column filtering
+Column show/hide
+Sticky headers
+SLA Styling:
+Green = Under SLA
+Red = SLA Breached
+B. Top 5 Slowest Transactions
+Derived from Release M* data
+Sorted by 90th Percentile (descending)
+Columns:
+Transaction Name
+Sub-Transaction Name
+90th Percentile
+SLA Status
+C. Top 5 – 90th Percentile Bar Chart
+Bar chart of Top 5 slowest transactions
+X-axis: Transaction / Sub-Transaction
+Y-axis: 90th Percentile Response Time
+Light theme colors
+Smooth animations
+Hover tooltips
+D. Release M* – Graph Sheet Content
+Render all content from the matching Release M* - Graph sheet
+Maintain same format as Excel:
+Titles
+Charts
+Tables
+Layout order
+Place this section immediately after the release’s charts
+Do not summarize or reinterpret
+E. Observations & Recommendations
+Identify SLA breaches (>3s)
+Highlight slow or degrading transactions
+Provide client-friendly recommendations
+Styling & Layout
+100% browser width
+No side white space
+Light theme only:
+White / light-gray background
+Soft blue, green, red accents
+Card-based sections with subtle shadows
+Responsive design
+Constraints (Strict)
+No backend or Python scripting
+No HTML upload controls
+No hardcoded release names
+SLA fixed at 3 seconds
+Consolidated sheet must appear FIRST
+All detected releases must be rendered
+Values must come directly from Excel or derived explicitly
+If data cannot be parsed, clearly report the missing sheet or column
+Do not fabricate, approximate, or skip data.
