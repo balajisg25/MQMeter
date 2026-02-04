@@ -1,0 +1,38 @@
+Generate a fully self-contained HTML performance report from the uploaded LoadRunner Excel file with the following features:
+Sticky Top Navigation Header
+Links to: Consolidated Table, Consolidated Bar Chart, each release section (M1, M2, …), Observations & Recommendations.
+Header remains visible while scrolling. Clicking links scrolls smoothly to the section.
+Consolidated Section (Homepage)
+Render full consolidated sheet. First 3 rows as headers.
+Add a filterable bar chart below the table: X-axis names shortened for laptop view, Y-axis response time, green ≤3s, red >3s.
+Param Sheet Mapping
+Use Param sheet to enrich transactions.
+Main calls: show Transaction Name, URL empty.
+Sub-transactions: show Sub-Transaction Name, URL from Param sheet.
+Trim and normalize strings before joining.
+Per-Release SLA Compliance Tables
+Group: Functionality → Transaction → Sub-Transaction (Functionality only for grouping).
+Columns: Transaction / Sub-Transaction, URL, Min, Max, Avg, 90th Percentile, SLA Status.
+SLA ≤3s = Under SLA (green), >3s = Breached (red).
+Expand/collapse all, search, per-column filter, hide unnecessary columns.
+Top 5 Slowest Transactions & 90th Percentile Bar Chart
+Sorted by 90th percentile descending, hover tooltips, smooth animations.
+X-axis names shortened for laptop view.
+Release M – Graph Sheet Content*
+Include all text, tables, charts, and images exactly as in Excel.
+Place immediately after release charts and tables.
+Observations & Recommendations
+Highlight SLA breaches (>3s) and slow transactions.
+Provide client-friendly recommendations.
+Layout and Styling
+Full-width, no side padding, light theme with soft blue/green/red accents.
+Card-based sections with subtle shadows.
+Tables: sticky headers, zebra stripes, row hover highlight.
+Responsive for laptop and larger screens.
+Constraints
+No backend or Python scripting.
+No HTML file upload controls.
+No hardcoded release names.
+SLA fixed at 3 seconds.
+All values come directly from Excel or derived dynamically.
+Generate the full HTML page, including all CSS and JavaScript, fully interactive tables and charts, ready to save as a single HTML file.
