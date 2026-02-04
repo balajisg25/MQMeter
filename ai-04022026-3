@@ -1,0 +1,46 @@
+Generate a fully self-contained HTML performance report from the uploaded LoadRunner Excel file with the following features:
+Sticky Top Navigation Header
+Links to: Consolidated Table, Consolidated Bar Chart, all release sections detected dynamically from sheets matching the pattern Release M*, and Observations & Recommendations.
+Header remains visible while scrolling. Clicking links scrolls smoothly to the corresponding section.
+Consolidated Section (Homepage)
+Render the full consolidated sheet. First 3 rows as table headers.
+Add a filterable bar chart below the table:
+X-axis names shortened for laptop view
+Y-axis: response time
+Bars colored: Green ≤3s, Red >3s
+Param Sheet Mapping
+Use the Param sheet to enrich transactions.
+Main calls: display Transaction Name, URL empty.
+Sub-transactions: display Sub-Transaction Name, URL from Param sheet.
+Trim and normalize strings before joining.
+Per-Release SLA Compliance Tables
+Detect all releases dynamically (Release M* - Response Time).
+Group: Functionality → Transaction → Sub-Transaction (Functionality used only for grouping).
+Columns: Transaction / Sub-Transaction, URL, Min, Max, Avg, 90th Percentile, SLA Status.
+SLA ≤3s = Under SLA (green), >3s = Breached (red).
+Table features: Expand/collapse all, global search, per-column filter, hide unnecessary columns.
+Top 5 Slowest Transactions & 90th Percentile Bar Chart
+Derived per release from 90th percentile response times.
+Sorted descending, hover tooltips, smooth animations.
+X-axis names shortened for laptop view.
+Release M – Graph Sheet Content*
+Include all text, tables, charts, and images exactly as in Excel.
+Place immediately after each release’s charts and tables.
+Observations & Recommendations
+Highlight SLA breaches (>3s) and slow transactions.
+Provide client-friendly recommendations.
+Layout and Styling
+Full-width, no side padding.
+Light theme with soft blue, green, and red accents.
+Card-based sections with subtle shadows.
+Tables: sticky headers, zebra stripes, row hover highlight.
+Responsive design for laptop and larger screens.
+Constraints
+No backend or Python scripting.
+No HTML upload controls.
+No hardcoded release names.
+SLA fixed at 3 seconds.
+All values must come directly from Excel or derived dynamically.
+Output Requirement
+Generate a complete HTML page, including all CSS and JavaScript, fully interactive tables and charts, ready to save as a single .html file.
+Sticky top navigation must automatically list all detected releases based on Release M* sheets.
