@@ -1,0 +1,52 @@
+Plain Text Prompt with Easy Top Navigation
+Generate a single, fully self-contained, interactive HTML performance report from the uploaded LoadRunner Excel file in Copilot (Microsoft 365). Include a sticky top navigation header with quick links to:
+Consolidated Table
+Consolidated Response Time Bar Chart
+Each detected release section (e.g., M1, M2, …)
+Observations & Recommendations
+The header must remain visible while scrolling, and clicking a link should smoothly scroll to the corresponding section.
+Consolidated Sheet (Homepage / Executive Summary)
+Use the entire consolidated sheet.
+First three rows are table headers.
+Full table rendered in HTML.
+Add a Consolidated Response Time Bar Chart immediately below the table:
+X-axis: transaction / functionality names, shortened for laptop view.
+Y-axis: response time.
+Include filtering options for columns or ranges.
+Bar colors: Green ≤3s, Red >3s.
+Param Sheet Mapping (Transaction Metadata)
+Use Param sheet to enrich each transaction (Transaction Name, Functionality, Sub-Transaction Name, URL).
+Join Release M* - Response Time sheets with Param sheet by Transaction Name.
+Main calls: Transaction Name column, URL empty.
+Sub-transactions: Sub-Transaction Name column, URL populated.
+Trim and normalize all strings before matching.
+SLA Compliance Table (Per Release)
+Grouping: Functionality → Transaction → Sub-Transaction (Functionality only for grouping, not a column).
+Columns: Transaction Name / Sub-Transaction Name, URL (empty for main calls), Min, Max, Avg, 90th Percentile, SLA Status (≤3s = Under SLA, >3s = SLA Breached).
+Features: Expand/collapse all, search, per-column filter, column show/hide (hide unnecessary columns by default).
+SLA Status styling: Green = Under SLA, Red = SLA Breached.
+Top 5 Slowest Transactions & 90th Percentile Graph
+Derived from Release M* data, sorted by 90th percentile descending.
+Bar chart X-axis: Transaction / Sub-Transaction names (shortened).
+Hover tooltips and smooth animations.
+Release M – Graph Sheet Content*
+Include all content from Release M* – Graph sheet exactly as in Excel: text, tables, charts, images.
+Images must load correctly.
+Place this section immediately after the release charts and tables.
+Observations & Recommendations
+Highlight SLA breaches (>3s) and slow transactions.
+Provide client-friendly recommendations.
+Layout and Styling
+Sticky top navigation header with links to all major sections.
+Full browser width, no side padding.
+Light theme: white/light-gray background, soft blue/green/red accents.
+Card-based layout with subtle shadows.
+Tables: sticky headers, zebra stripes, row hover highlight.
+Responsive design for laptops and larger screens.
+Constraints
+No backend or Python scripting.
+No HTML file upload controls.
+No hardcoded release names.
+SLA fixed at 3 seconds.
+All values must come directly from Excel or derived dynamically.
+Clearly report missing or unparseable sheets.
