@@ -1,0 +1,154 @@
+TASK
+Generate a single, fully self-contained, interactive, light-themed HTML performance report by reading and rendering data from the uploaded LoadRunner Excel file in Microsoft Copilot (Microsoft 365).
+The report must strictly follow the logical order, hierarchy, and structure of the Excel file.
+All values must come directly from Excel or be explicitly derived as described below.
+Do not assume, approximate, or fabricate any data.
+SHEET DISCOVERY (NO HARDCODING)
+Automatically identify and parse the following sheets by name:
+consolidated
+param
+Any sheet whose name matches: Release M* - Response Time
+Release M* - Graph
+Release names must be detected dynamically (for example: M1, M2, M3).
+Do not hardcode any release identifiers.
+If any expected sheet is missing, display a visible message in the HTML report identifying the missing sheet.
+DATA SOURCES AND RULES
+CONSOLIDATED SHEET (PRIMARY SUMMARY – MUST APPEAR FIRST)
+Use the consolidated sheet as the homepage summary.
+Render the table exactly as it appears in Excel:
+Preserve row order
+Preserve column order
+Preserve all cell values
+Preserve NA and blank cells
+Do not recalculate, normalize, or modify consolidated values.
+All numeric values in this sheet must be explicitly parsed as numbers.
+If numeric parsing fails, display an error message in the report identifying the column.
+PARAM SHEET (METADATA ENRICHMENT)
+Use the param sheet only to enrich transaction data.
+Columns:
+Transaction Name (join key)
+Functionality
+Sub-Transaction Name
+URL
+Join rules:
+Join using Transaction Name
+Trim leading and trailing spaces
+Match case-insensitively
+If no match is found, leave metadata fields blank
+Do not infer or generate missing metadata
+RELEASE M* – RESPONSE TIME SHEETS
+For each detected release:
+Read all populated rows.
+Explicitly convert the following columns to numeric values:
+Minimum
+Average
+Maximum
+90th Percentile
+Ignore the following columns completely:
+Pass
+Fail
+Stop
+If numeric conversion fails for any column, report the issue in the HTML instead of skipping the section.
+SLA CALCULATION (DERIVED ONLY IN HTML)
+SLA must not be read from Excel.
+Use a fixed SLA threshold of 3 seconds.
+Rules:
+Under SLA: 90th Percentile is less than or equal to 3 seconds
+SLA Breached: 90th Percentile is greater than 3 seconds
+Apply SLA consistently to tables, charts, and observations.
+HTML REPORT STRUCTURE (STRICT ORDER)
+CONSOLIDATED TABLE (FIRST)
+Full-width table
+Sticky headers
+Zebra striping
+Row hover highlighting
+No pagination
+CONSOLIDATED BAR CHART (IMMEDIATELY AFTER TABLE)
+Use only numeric response-time values
+Ignore NA, blank, or non-numeric cells
+X-axis: Functionalities or Transactions from consolidated sheet
+Y-axis: Response Time
+Color rules: Green for values less than or equal to 3 seconds Red for values greater than 3 seconds
+Show hover tooltips with exact values
+If no numeric data is available, display a clear message explaining why.
+PER-RELEASE SECTIONS (FOR EACH DETECTED RELEASE)
+PER-RELEASE SECTION – RELEASE M*
+A. RESPONSE TIME AND SLA TABLE (FUNCTIONALITY GROUPED)
+Data sources:
+Release M* - Response Time sheet
+param sheet
+Grouping behavior:
+Group rows by Functionality
+Functionality acts as a collapsible parent section
+All functionality groups must be collapsed by default
+Each functionality can be expanded individually
+Provide Expand All and Collapse All controls
+Hierarchy: Functionality
+Transaction Name (main call)
+Sub-Transaction Name (sub call)
+Visibility rules:
+Functionality must not appear as a table column
+Functionality is shown only as a group header
+Table columns:
+Transaction Name
+Sub-Transaction Name
+URL
+Minimum Response Time
+Maximum Response Time
+Average Response Time
+90th Percentile Response Time
+SLA Status
+Table features:
+Sticky headers
+Global search
+Per-column filtering
+Column show/hide
+Responsive layout
+SLA styling:
+Green for Under SLA
+Red for SLA Breached
+B. TOP 5 SLOWEST TRANSACTIONS
+Derived from the entire release dataset
+Sorted by 90th Percentile in descending order
+Columns:
+Transaction Name
+Sub-Transaction Name
+90th Percentile
+SLA Status
+C. TOP 5 90TH PERCENTILE BAR CHART
+X-axis: Transaction or Sub-Transaction
+Y-axis: 90th Percentile Response Time
+Light theme colors
+Smooth animations
+Hover tooltips
+D. RELEASE M* – GRAPH SHEET CONTENT
+Render all content from the corresponding Release M* - Graph sheet.
+Preserve:
+Titles
+Charts
+Tables
+Layout order
+Do not summarize, reinterpret, or alter the content.
+E. OBSERVATIONS AND RECOMMENDATIONS
+Identify all SLA breaches greater than 3 seconds
+Highlight slow or degrading transactions
+Provide clear, client-friendly, actionable recommendations
+STYLING AND LAYOUT
+100 percent browser width
+No side whitespace
+Light theme only
+White or light-gray background
+Soft blue, green, and red accents
+Card-based layout
+Subtle shadows
+Fully responsive
+CONSTRAINTS (STRICT)
+No backend or Python scripting
+No HTML upload controls
+No hardcoded release names
+SLA threshold must remain 3 seconds
+Consolidated section must appear first
+All detected releases must be rendered
+All values must come directly from Excel or be explicitly derived
+If any sheet, column, or numeric value cannot be parsed, display a visible error message in the HTML
+Do not fabricate, approximate, or skip data
