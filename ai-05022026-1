@@ -1,0 +1,136 @@
+TASK
+Generate a single, fully self-contained, interactive, light-themed HTML performance report by accurately reading and rendering data from the uploaded LoadRunner Excel file in Microsoft Copilot (M365).
+The HTML report must strictly follow the logical order, hierarchy, and structure of the provided Excel sample.
+No assumptions, approximations, or fabricated data are allowed.
+SHEET DETECTION (NO HARDCODING)
+Automatically detect and parse the following sheets:
+consolidated
+param
+All sheets matching the patterns: Release M* - Response Time
+Release M* - Graph
+Do not hardcode release names.
+Releases must be detected dynamically (M1, M2, M3, etc.).
+DATA SOURCES AND MAPPING RULES
+CONSOLIDATED SHEET (PRIMARY SUMMARY – MUST BE FIRST)
+Treat the consolidated sheet as the homepage summary.
+Render the table exactly as it appears in Excel.
+Preserve:
+Row order
+Column order
+Cell values
+NA and blank values
+Do not recalculate, normalize, or modify any values.
+PARAM SHEET (METADATA JOIN)
+Used to enrich transaction data.
+Columns:
+Transaction Name (Primary Key)
+Functionality
+Sub-Transaction Name
+URL
+Join Rules:
+Join using Transaction Name
+Trim whitespace and normalize case before matching
+If no match is found, leave fields blank
+Do not infer, guess, or fabricate metadata
+RELEASE M* - RESPONSE TIME SHEETS
+For each detected release:
+Parsing Rules:
+Read all populated rows
+Convert numeric columns: Minimum Average Maximum 90th Percentile
+Ignore: Pass Fail Stop
+SLA STATUS (DERIVED IN HTML ONLY)
+SLA must not be read from Excel.
+SLA threshold is fixed at 3 seconds.
+Rule:
+Under SLA if 90th Percentile is less than or equal to 3 seconds
+SLA Breached if 90th Percentile is greater than 3 seconds
+Apply SLA consistently to tables, charts, observations, and recommendations.
+HTML REPORT STRUCTURE (STRICT ORDER)
+CONSOLIDATED SECTION (FIRST)
+Display the entire consolidated sheet table
+Full width table
+Sticky headers
+Zebra striping
+Row hover highlighting
+No pagination
+Exact Excel layout preserved
+CONSOLIDATED BAR CHART (IMMEDIATELY AFTER TABLE)
+X-axis: Functionalities or Transactions as per consolidated sheet
+Y-axis: Response Time values
+Color rules: Green for values less than or equal to 3 seconds Red for values greater than 3 seconds
+Hover tooltips showing exact values
+PER-RELEASE DETAILED SECTIONS (FOR EVERY DETECTED RELEASE)
+PER-RELEASE SECTION – RELEASE M*
+A. RESPONSE TIME AND SLA COMPLIANCE TABLE (FUNCTIONALITY GROUPED AND EXPANDABLE)
+Data Source:
+Release M* - Response Time sheet
+Param sheet
+Grouping and Expand/Collapse Rules:
+Group rows by Functionality
+Each Functionality is a collapsible parent section
+Tables must be collapsed by default at the functionality level
+Each functionality can be expanded individually
+Provide Expand All and Collapse All controls
+Hierarchy: Functionality Transaction Name (Main Call) Sub-Transaction Name (Sub Call)
+Visibility Rules:
+Functionality must not appear as a table column
+Functionality appears only as a group header
+Columns:
+Transaction Name
+Sub-Transaction Name
+URL
+Minimum Response Time
+Maximum Response Time
+Average Response Time
+90th Percentile Response Time
+SLA Status
+Table Features:
+Sticky headers
+Global search across all functionalities
+Per-column filtering
+Column show/hide
+Responsive layout
+SLA Styling:
+Green for Under SLA
+Red for SLA Breached
+B. TOP 5 SLOWEST TRANSACTIONS
+Derived from the entire release data
+Sorted by 90th Percentile in descending order
+Columns:
+Transaction Name
+Sub-Transaction Name
+90th Percentile
+SLA Status
+C. TOP 5 – 90TH PERCENTILE BAR CHART
+X-axis: Transaction or Sub-Transaction
+Y-axis: 90th Percentile Response Time
+Light theme colors
+Smooth animations
+Hover tooltips
+D. RELEASE M* - GRAPH SHEET CONTENT
+Render all content from the Release M* - Graph sheet
+Maintain original titles, charts, tables, and layout order
+Do not summarize, reinterpret, or alter the content
+E. OBSERVATIONS AND RECOMMENDATIONS
+Identify SLA breaches greater than 3 seconds
+Highlight slow or degrading transactions
+Provide clear, client-friendly, actionable recommendations
+STYLING AND LAYOUT
+100 percent browser width
+No side white space
+Light theme only
+White or light gray background
+Soft blue, green, and red accents
+Card-based layout
+Subtle shadows
+Fully responsive design
+CONSTRAINTS (STRICT)
+No backend or Python scripting
+No HTML upload controls
+No hardcoded release names
+SLA value must remain 3 seconds
+Consolidated section must appear first
+All detected releases must be rendered
+All values must come directly from Excel or be explicitly derived
+If any required sheet or column is missing, clearly report it in the HTML
+Do not fabricate, approximate, or skip any data
