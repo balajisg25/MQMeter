@@ -1,0 +1,361 @@
+✅ STEP 1 — Install Requirements
+1️⃣ Install Java 11 or 17
+Check:
+Bash
+Copy code
+java -version
+If not installed → Install OpenJDK 17.
+2️⃣ Install Maven
+Check:
+Bash
+Copy code
+mvn -version
+If not installed → download from: https://maven.apache.org�
+✅ STEP 2 — Create Gatling Maven Project
+Run:
+Bash
+Copy code
+mvn archetype:generate ^
+  -DarchetypeGroupId=io.gatling ^
+  -DarchetypeArtifactId=gatling-maven-archetype ^
+  -DarchetypeVersion=4.8.0 ^
+  -DgroupId=com.example ^
+  -DartifactId=gatling-api ^
+  -Dversion=1.0-SNAPSHOT ^
+  -DinteractiveMode=false
+Then:
+Bash
+Copy code
+cd gatling-api
+✅ STEP 3 — Clean Project Structure
+Organize like this:
+Copy code
+
+src
+ ├── test
+ │   ├── java
+ │   │   ├── simulations
+ │   │   │    └── ApiSimulation.java
+ │   │   ├── requests
+ │   │   │    ├── LoginRequest.java
+ │   │   │    ├── GetUserRequest.java
+ │   │   │    └── CreateOrderRequest.java
+ │   │   └── utils
+ │   │        └── BaseConfig.java
+ │   └── resources
+ │        ├── data
+ │        │    ├── users.csv
+ │        │    └── orders.csv
+ │        └── cert
+ │             └── client.jks
+✅ STEP 4 — Base Configuration
+📁 utils/BaseConfig.java
+Java
+Copy code
+package utils;
+
+import io.gatling.javaapi.http.HttpProtocolBuilder;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class BaseConfig {
+
+    public static HttpProtocolBuilder httpProtocol = http
+            .baseUrl("https://api.yourdomain.com")
+            .acceptHeader("application/json")
+            .contentTypeHeader("application/json");
+}
+✅ STEP 5 — Multiple Endpoints (Separate Java Files)
+🔐 1️⃣ Login Request (Correlation Example)
+📁 requests/LoginRequest.java
+Java
+Copy code
+package requests;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class LoginRequest {
+
+    public static ChainBuilder login =
+        exec(
+            http("Login API")
+                .post("/login")
+                .body(StringBody(
+                    """
+                    {
+                      "username": "#{username}",
+                      "password": "#{password}"
+                    }
+                    """
+                ))
+                .check(status().is(200))
+                // Correlation: extract token
+                .check(jsonPath("$.token").saveAs("authToken"))
+        );
+}
+👤 2️⃣ Get User
+📁 requests/GetUserRequest.java
+Java
+Copy code
+package requests;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class GetUserRequest {
+
+    public static ChainBuilder getUser =
+        exec(
+            http("Get User")
+                .get("/users/#{userId}")
+                .header("Authorization", "Bearer #{authToken}")
+                .check(status().is(200))
+        );
+}
+🛒 3️⃣ Create Order
+📁 requests/CreateOrderRequest.java
+Java
+Copy code
+package requests;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class CreateOrderRequest {
+
+    public static ChainBuilder createOrder =
+        exec(
+            http("Create Order")
+                .post("/orders")
+                .header("Authorization", "Bearer #{authToken}")
+                .body(StringBody(
+                    """
+                    {
+                      "productId": "#{productId}",
+                      "quantity": "#{quantity}"
+                    }
+                    """
+                ))
+                .check(status().in(200, 201))
+        );
+}
+✅ STEP 6 — Multiple CSV Files
+Place CSV files in:
+Copy code
+
+src/test/resources/data
+📄 users.csv
+Copy code
+
+username,password,userId
+user1,pass1,101
+user2,pass2,102
+📄 orders.csv
+Copy code
+
+productId,quantity
+1001,2
+1002,1
+✅ STEP 7 — Main Simulation
+📁 simulations/ApiSimulation.java
+Java
+Copy code
+package simulations;
+
+import io.gatling.javaapi.core.*;
+import io.gatling.javaapi.http.*;
+import requests.*;
+import utils.BaseConfig;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+
+public class ApiSimulation extends Simulation {
+
+    FeederBuilder<String> userFeeder =
+        csv("data/users.csv").circular();
+
+    FeederBuilder<String> orderFeeder =
+        csv("data/orders.csv").random();
+
+    ScenarioBuilder scn = scenario("Full API Flow")
+        .feed(userFeeder)
+        .exec(LoginRequest.login)
+        .feed(orderFeeder)
+        .exec(GetUserRequest.getUser)
+        .exec(CreateOrderRequest.createOrder);
+
+    {
+        setUp(
+            scn.injectOpen(rampUsers(50).during(30))
+        )
+        .protocols(BaseConfig.httpProtocol)
+        .assertions(
+            global().responseTime().max().lt(2000),
+            global().successfulRequests().percent().gt(95.0)
+        );
+    }
+}
+✅ STEP 8 — Certificate Import (HTTPS + mTLS)
+If your API requires client certificate:
+🔹 Convert Certificate to JKS
+Bash
+Copy code
+keytool -import -trustcacerts \
+ -alias mycert \
+ -file mycert.crt \
+ -keystore client.jks
+🔹 Configure in BaseConfig.java
+Java
+Copy code
+public static HttpProtocolBuilder httpProtocol = http
+        .baseUrl("https://secure-api.yourdomain.com")
+        .keystorePath("src/test/resources/cert/client.jks")
+        .keystorePassword("password");
+✅ STEP 9 — Run Test
+Bash
+Copy code
+mvn gatling:test
+Choose simulation → press Enter.
+✅ What You Now Have
+✔ Clean layered framework
+✔ Multiple endpoints
+✔ Multiple CSV feeders
+✔ Correlation (token extraction)
+✔ Assertions
+✔ Certificate support
+✔ Scalable structure
+💡 Professional Tips
+Use pause(1) between requests for realism
+Use rendezVous() for concurrency control
+Add environment-based config using system properties
+Integrate with Jenkins/GitHub Actions
+If you want, I can now give you:
+🔥 CI/CD pipeline example
+🔥 Advanced correlation (regex, headers)
+🔥 Dynamic environment switching (QA/UAT/Prod)
+🔥 Complete enterprise-ready framework template
+Just tell me what level you're targeting 👌
+
+
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>gatling-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Gatling API Load Test</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <gatling.version>3.10.5</gatling.version>
+    </properties>
+
+    <dependencies>
+        <!-- Gatling Java DSL -->
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-core</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-http</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Gatling Maven Plugin -->
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>4.8.0</version>
+                <configuration>
+                    <simulationPackage>simulations</simulationPackage>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+
+
+setUp(
+    scn.injectClosed(
+
+        // Ramp up to 1000 concurrent users in 20 minutes
+        rampConcurrentUsers(0)
+            .to(1000)
+            .during(20 * 60),
+
+        // Stable load for 1 hour
+        constantConcurrentUsers(1000)
+            .during(60 * 60),
+
+        // Ramp down back to 0 in 20 minutes
+        rampConcurrentUsers(1000)
+            .to(0)
+            .during(20 * 60)
+
+    )
+).protocols(BaseConfig.httpProtocol);
+
+
+setUp(
+    scn.injectOpen(
+
+        // Ramp arrival rate from 0 to 10 users/sec over 20 minutes
+        rampUsersPerSec(0)
+            .to(10)
+            .during(20 * 60),
+
+        // Constant 10 users/sec for 1 hour
+        constantUsersPerSec(10)
+            .during(60 * 60),
+
+        // Ramp down from 10 to 0 users/sec
+        rampUsersPerSec(10)
+            .to(0)
+            .during(20 * 60)
+
+    )
+).protocols(BaseConfig.httpProtocol);
+
+
+
+
+.assertions(
+    global().responseTime().percentile(95).lt(2000),
+    global().successfulRequests().percent().gt(99.0)
+);
