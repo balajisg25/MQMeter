@@ -1,0 +1,286 @@
+FULL PROJECT TREE STRUCTURE
+Copy code
+
+gatling-api/
+│
+├── pom.xml
+│
+└── src
+    └── test
+        ├── java
+        │   ├── simulations
+        │   │   └── FullSimulation.java
+        │   │
+        │   ├── requests
+        │   │   ├── auth
+        │   │   │   └── SamlLoginRequest.java
+        │   │   │
+        │   │   ├── user
+        │   │   │   └── GetUserRequest.java
+        │   │   │
+        │   │   └── order
+        │   │       └── CreateOrderRequest.java
+        │   │
+        │   └── utils
+        │       ├── BaseConfig.java
+        │       └── EnvironmentConfig.java
+        │
+        └── resources
+            ├── data
+            │   ├── users.csv
+            │   └── orders.csv
+            │
+            └── logback-test.xml
+📄 1️⃣ pom.xml (Gatling 3.8.3)
+XML
+Copy code
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.company</groupId>
+    <artifactId>gatling-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <gatling.version>3.8.3</gatling.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-core</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-http</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>4.2.9</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+📄 2️⃣ EnvironmentConfig.java
+Java
+Copy code
+package utils;
+
+public class EnvironmentConfig {
+
+    private static String env = System.getProperty("env", "qa");
+
+    public static String authUrl() {
+        switch (env) {
+            case "uat": return "https://uat-auth.company.com";
+            case "prod": return "https://auth.company.com";
+            default: return "https://qa-auth.company.com";
+        }
+    }
+
+    public static String userUrl() {
+        switch (env) {
+            case "uat": return "https://uat-user.company.com";
+            case "prod": return "https://user.company.com";
+            default: return "https://qa-user.company.com";
+        }
+    }
+
+    public static String orderUrl() {
+        switch (env) {
+            case "uat": return "https://uat-order.company.com";
+            case "prod": return "https://order.company.com";
+            default: return "https://qa-order.company.com";
+        }
+    }
+}
+📄 3️⃣ BaseConfig.java
+Java
+Copy code
+package utils;
+
+import io.gatling.javaapi.http.HttpProtocolBuilder;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class BaseConfig {
+
+    public static HttpProtocolBuilder authProtocol =
+        http.baseUrl(EnvironmentConfig.authUrl())
+            .acceptHeader("application/json");
+
+    public static HttpProtocolBuilder userProtocol =
+        http.baseUrl(EnvironmentConfig.userUrl())
+            .acceptHeader("application/json");
+
+    public static HttpProtocolBuilder orderProtocol =
+        http.baseUrl(EnvironmentConfig.orderUrl())
+            .acceptHeader("application/json");
+}
+📄 4️⃣ SamlLoginRequest.java
+Java
+Copy code
+package requests.auth;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class SamlLoginRequest {
+
+    public static ChainBuilder samlLogin =
+
+        exec(
+            http("Generate SAML")
+                .post("/saml/generate")
+                .body(StringBody("""
+                {
+                  "username": "#{username}",
+                  "password": "#{password}"
+                }
+                """))
+                .check(status().is(200))
+                .check(jsonPath("$.samlResponse").saveAs("samlResponse"))
+        )
+
+        .exec(
+            http("Exchange SAML for Token")
+                .post("/oauth/token")
+                .formParam("grant_type",
+                    "urn:ietf:params:oauth:grant-type:saml2-bearer")
+                .formParam("assertion", "#{samlResponse}")
+                .check(status().is(200))
+                .check(jsonPath("$.access_token").saveAs("authToken"))
+        );
+}
+📄 5️⃣ GetUserRequest.java
+Java
+Copy code
+package requests.user;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class GetUserRequest {
+
+    public static ChainBuilder getUser =
+        exec(
+            http("Get User")
+                .get("/users/#{userId}")
+                .header("Authorization", "Bearer #{authToken}")
+                .check(status().is(200))
+        );
+}
+📄 6️⃣ CreateOrderRequest.java
+Java
+Copy code
+package requests.order;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class CreateOrderRequest {
+
+    public static ChainBuilder createOrder =
+        exec(
+            http("Create Order")
+                .post("/orders")
+                .header("Authorization", "Bearer #{authToken}")
+                .body(StringBody("""
+                {
+                  "productId": "#{productId}",
+                  "quantity": "#{quantity}"
+                }
+                """))
+                .check(status().in(200, 201))
+        );
+}
+📄 7️⃣ FullSimulation.java
+Includes your required load profile:
+Ramp up 20 mins → 1000 users
+Stable 1 hour
+Ramp down 20 mins
+Java
+Copy code
+package simulations;
+
+import io.gatling.javaapi.core.*;
+import requests.auth.SamlLoginRequest;
+import requests.user.GetUserRequest;
+import requests.order.CreateOrderRequest;
+import utils.BaseConfig;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+
+public class FullSimulation extends Simulation {
+
+    FeederBuilder<String> userFeeder =
+        csv("data/users.csv").circular();
+
+    FeederBuilder<String> orderFeeder =
+        csv("data/orders.csv").random();
+
+    ScenarioBuilder scn = scenario("Full Enterprise Flow")
+        .feed(userFeeder)
+        .exec(SamlLoginRequest.samlLogin)
+        .exec(GetUserRequest.getUser)
+        .feed(orderFeeder)
+        .exec(CreateOrderRequest.createOrder);
+
+    {
+        setUp(
+            scn.injectClosed(
+
+                rampConcurrentUsers(0)
+                    .to(1000)
+                    .during(20 * 60),
+
+                constantConcurrentUsers(1000)
+                    .during(60 * 60),
+
+                rampConcurrentUsers(1000)
+                    .to(0)
+                    .during(20 * 60)
+
+            )
+        )
+        .protocols(
+            BaseConfig.authProtocol,
+            BaseConfig.userProtocol,
+            BaseConfig.orderProtocol
+        )
+        .assertions(
+            global().responseTime().percentile(95).lt(2000),
+            global().successfulRequests().percent().gt(99.0)
+        );
+    }
+}
+📄 users.csv
+Copy code
+
+username,password,userId
+user1,pass1,101
+user2,pass2,102
+📄 orders.csv
+Copy code
+
+productId,quantity
+1001,2
+1002,1
