@@ -241,3 +241,22 @@ public class GetBalancesRequest {
 }
 Make sure your cert file is placed at:
 src/test/resources/certs/balances.p12
+
+
+
+
+package requests.balances;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+import io.gatling.javaapi.core.ChainBuilder;
+import io.gatling.javaapi.http.HttpProtocolBuilder;
+
+public class GetBalancesRequest {
+
+    static {
+        System.setProperty("javax.net.ssl.keyStoreType", "PKCS12");
+        System.setProperty("javax.net.ssl.keyStore", "src/test/resources/certs/balances.p12");
+        System.setProperty("javax.net.ssl.keyStorePassword", "yourPassword");
+    }
