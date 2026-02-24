@@ -175,3 +175,20 @@ GET balances parameters
 mTLS certificate
 Multi-environment support
 Do you want me to prepare that full project structure next?
+
+
+private static final KeyManagerFactory KMF = loadKeyManager();
+
+    private static KeyManagerFactory loadKeyManager() {
+        try {
+            KeyStore ks = KeyStore.getInstance("PKCS12");
+            try (InputStream is = Api1Request.class.getClassLoader().getResourceAsStream("certs/api1.p12")) {
+                ks.load(is, "pass1".toCharArray());
+            }
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, "pass1".toCharArray());
+            return kmf;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
