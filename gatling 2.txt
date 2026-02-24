@@ -192,3 +192,52 @@ private static final KeyManagerFactory KMF = loadKeyManager();
             throw new RuntimeException(e);
         }
     }
+
+
+Add keyManagerFactory to your existing request:
+package requests.balances;
+
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+import io.gatling.javaapi.core.ChainBuilder;
+import io.gatling.javaapi.http.HttpRequestActionBuilder;
+
+import javax.net.ssl.*;
+import java.io.*;
+import java.security.*;
+
+public class GetBalancesRequest {
+
+    private static final KeyManagerFactory KMF = loadKeyManager();
+
+    private static KeyManagerFactory loadKeyManager() {
+        try {
+            KeyStore ks = KeyStore.getInstance("PKCS12");
+            try (InputStream is = GetBalancesRequest.class.getClassLoader()
+                    .getResourceAsStream("certs/balances.p12")) {
+                ks.load(is, "yourPassword".toCharArray());
+            }
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, "yourPassword".toCharArray());
+            return kmf;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static ChainBuilder getBalances =
+        exec(
+            http("Get Account Balances")
+                .get("/META-fa01/N1fcash-accl/balances/HE44001846748745/EUR/balances")
+                .queryParam("datefrom", "2025-04-01")
+                .queryParam("dateTo", "2026-02-19")
+                .header("Accept", "application/json")
+                .header("X-Custom-Token", "#{customToken}")
+                .keyManagerFactory(s -> KMF)
+                .check(status().is(200))
+        )
+        .pause(2);
+}
+Make sure your cert file is placed at:
+src/test/resources/certs/balances.p12
